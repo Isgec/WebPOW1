@@ -1,0 +1,169 @@
+<%@ Master Language="VB" CodeFile="MasterPage.master.vb" Inherits="lgMasterPage" %>
+<!DOCTYPE html>
+<html lang="en">
+<head runat="server">
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>ISGEC-Mobile App</title>
+  <link rel="SHORTCUT ICON" type="image/x-icon" runat="server" href="~/isgec.ico" />
+  <!--Existing Pure CSS Menu-->
+  <!--JQuery 3.3-->
+  <script type="text/javascript" src="/../UserRights/jq3.3/jquery-3.3.1.min.js"></script>
+  <!-- Font 4.7-->
+  <link href="/../UserRights/fa4.7/css/font-awesome.min.css" rel="stylesheet" />
+  <!--Bootstrap 4.0 uses Jquery 3 or above, Popper & Tooltip-->
+  <link rel="stylesheet" href="/../UserRights/bs4.0/css/bootstrap.min.css" />
+  <script type="text/javascript" src="/../UserRights/Popper1.0/Popper.min.js"></script>
+  <script type="text/javascript" src="/../UserRights/bs4.0/js/bootstrap.min.js"></script>
+ 
+  <asp:ContentPlaceHolder ID="cphMain" runat="server" EnableViewState="true">
+  </asp:ContentPlaceHolder>
+  <style type="text/css">
+    /* overriding LEGEND defined in BS with my value */
+    legend {
+      width: auto;
+      height: auto;
+      font-size: 11px;
+      padding: 4px 15px 4px 10px;
+      margin: 4px 0 8px 8px;
+      _margin-top: 0px;
+      border: 1px solid #dddddd;
+      background: #e9e9e9;
+      font-weight: bold;
+      border-radius: 8px;
+      background: #014464;
+      color: #f1f1f1;
+      background-image: -moz-linear-gradient(top, #0272a7, #013953);
+      background-image: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#0272a7), to(#013953));
+      background-image: linear-gradient(#0272a7, #013953);
+      background-image: -o-linear-gradient(top, #0272a7, #013953);
+    }
+  </style>
+</head>
+<body>
+  <form id="form1" runat="server">
+    <!--Patch for webkit based browser, chrome & safari-->
+    <asp:ScriptManager ID="ToolkitScriptManager1" EnableScriptGlobalization="true" runat="server" EnablePageMethods="true" AsyncPostBackTimeout="3600" EnableScriptLocalization="True" ScriptMode="Auto">
+      <Scripts>
+        <asp:ScriptReference Path="~/jq3.3/ui/webkit.js" />
+      </Scripts>
+    </asp:ScriptManager>
+    <LGM:LGLoading ID="LGLoadingM" runat="server" />
+    <script type="text/javascript">
+      Sys.WebForms.PageRequestManager.getInstance().add_endRequest(hideProcessingMPV);
+      Sys.WebForms.PageRequestManager.getInstance().add_beginRequest(showProcessingMPV);
+      function groupClicked(p) {
+        var tbl = p.parentElement.parentElement;
+        var o = p.parentElement.rowIndex;
+        for (ii = 0; ii <= tbl.rows.length - 1; ii++) {
+          if (ii > o) {
+            if (tbl.rows[ii].id != '')
+              return;
+            if (tbl.rows[ii].style.display == 'none')
+              tbl.rows[ii].style.display = '';
+            else
+              tbl.rows[ii].style.display = 'none';
+          }
+        }
+      }
+      function dc(o, p) {
+        var dec = /^-?\d+(?:\.\d{0,6})?$/;
+        var v = o.value;
+        if (v.match(dec)) {
+          o.value = parseFloat(v).toFixed(p);
+        } else {
+          o.value = parseFloat('0').toFixed(p);
+        }
+      }
+    </script>
+
+    <nav class="navbar navbar-expand-xl bg-dark navbar-dark">
+      <a class="navbar-brand" href="#">
+        <asp:Image ID="any" runat="server" AlternateText="ISGEC" Height="43px" ImageUrl="~/App_Themes/Default/Images/Isgec2.jpg" />
+      </a>
+      <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#collapsibleNavbar">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+
+      <!-- Navbar links -->
+      <div class="collapse navbar-collapse justify-content-end" id="collapsibleNavbar">
+        <ul class="navbar-nav">
+          <li class="nav-item">
+            <a class="nav-link" href="#"><asp:LinkButton ID="cmdChangePassword" runat="server" CssClass="btn btn-sm btn-outline-warning" PostBackUrl="~/ChangePassword.aspx" Text="Change Password" /></a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="#"><asp:LoginStatus ID="LoginStatus1" runat="server" CssClass="btn btn-sm btn-outline-primary" OnLoggedOut="LoggedOut" LoginText="Sign In" LogoutAction="Redirect" LogoutPageUrl="~/bsLogin.aspx" LogoutText="  Sign Out  " /></a>
+          </li>
+        </ul>
+      </div>
+    </nav>
+
+    <div class="container-fluid myborder">
+      <div class="row badge-light myborder">
+        <div class="col">
+          <div id="algmnu" runat="server"></div>
+        </div>
+      </div>
+      <div class="row">
+        <div class="col" style="min-height: 500px;">
+          <asp:ContentPlaceHolder ID="cph1" runat="server"></asp:ContentPlaceHolder>
+        </div>
+      </div>
+      <div id="winsize" runat="server" style="display:none;">
+        <asp:Label ID="wd" runat="server" ForeColor="red" Font-Bold="true"></asp:Label>
+        <asp:Label ID="ht" runat="server" ForeColor="Green" Font-Bold="true"></asp:Label>
+        <asp:Button ID="cmdget" runat="server" Text="get" OnClick="cmdget_Click" />
+      </div>
+      <div id="myFooter" runat="server" class="row badge-light myborder">
+        <div class="col" style="height: 60px;">
+          <table style="white-space: nowrap;">
+            <tr>
+              <td>
+                <span style="font-size: 1em">© ISGEC Heavy Engineering Limited. All rights reserved.</span>
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <span style="font-size: 1em;">A-4, Sector-24, NOIDA, U.P. 201 301, INDIA </span>
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <span>Designed &amp; Developed by:</span> <span style="color: #99ffcc">ISGEC IT Team</span>
+              </td>
+            </tr>
+          </table>
+        </div>
+      </div>
+    </div>
+  </form>
+  <script type="text/javascript">
+    window.onresize = function (event) {
+      SetWidthHeight();
+    }
+    function SetWidthHeight() {
+      var height = $(window).height();
+      var width = $(window).width();
+      $.ajax({
+        url: "/WebPOW1/App_Services/mediaSize.ashx",
+        dataType: 'json',
+        data: {
+          'Height': height,
+          'Width': width
+        },
+        contentType: "application/json; charset=utf-8"
+      }).done(function (data) {
+        if (data.isFirst) {
+          //window.location.reload();
+        };
+      }).fail(function (xhr) {
+        alert("Problem to retrieve browser size. "+xhr);
+      });
+
+    }
+    $(function () {
+      SetWidthHeight();
+    });
+  </script>
+</body>
+</html>

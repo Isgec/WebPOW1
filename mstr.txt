@@ -1,0 +1,11 @@
+  <!--JQuery 3.3-->
+  <script type="text/javascript" src="jq3.3/jquery-3.3.1.min.js" ></script>
+  <link rel="stylesheet" href="~/jq3.3/ui/themes/smoothness/jquery-ui.css" runat="server" />
+  <script type="text/javascript" src="jq3.3/ui/jquery-ui.js"></script>
+  <!-- Font 4.7-->
+  <link href="~/fa47/css/font-awesome.min.css" rel="stylesheet" runat="server" />
+  <!--Bootstrap 4.0 uses Jquery 3 or above, Popper & Tooltip-->
+  <link rel="stylesheet" href="~/bs4.0/css/bootstrap.min.css" runat="server" />
+  <script type="text/javascript" src="Popper1.0/popper.min.js"></script>
+  <script type="text/javascript" src="Popper1.0/tooltip.min.js"></script>
+  <script type="text/javascript" src="bs4.0/js/bootstrap.min.js"></script>
