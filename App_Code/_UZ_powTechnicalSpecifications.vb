@@ -411,10 +411,7 @@ Namespace SIS.POW
         End Using
       End Using
     End Sub
-
-
     Public Shared Function Import(ByVal IndentNo As String, ByVal LineNo As String, Optional ByVal oTS As SIS.POW.powTechnicalSpecifications = Nothing, Optional ByVal ImportingFromJoomla As Boolean = True) As SIS.POW.powTechnicalSpecifications
-      'First Import will return oTS, Further Function Call will add in pased oTS
       If IndentNo = "" Then Return oTS
       If LineNo = "" Then LineNo = 0
 
@@ -448,7 +445,11 @@ Namespace SIS.POW
             With oTS
               .TSDescription = IndentLine.t_nids
               .TSTypeID = enumTSTypes.Boughtout
-              .StatusID = enumTSStates.Created
+              If ImportingFromJoomla Then
+                .StatusID = enumTSStates.Created
+              Else
+                .StatusID = enumTSStates.TechnicalSpecificationReleased
+              End If
               .CreatedBy = HttpContext.Current.Session("LoginID")
               .CreatedOn = Now
             End With
@@ -535,6 +536,10 @@ Namespace SIS.POW
           End If
           SIS.EDI.ediAFile.InsertData(aFile, Comp)
         Next
+        '================================
+        'Update Flag in ERP-LN with TSID 
+        SIS.TDPUR.tdpur201.UpdateTSID(oTSI.IndentNo, oTSI.IndentLine, oTSI.TSID)
+        '================================
       Next
       Return oTS
     End Function

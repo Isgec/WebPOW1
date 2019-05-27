@@ -8,6 +8,7 @@ Imports System.Net.Mail.SmtpClient
 Imports System.Web
 Imports System
 Namespace SIS.SYS.Utilities
+
   <AttributeUsage(AttributeTargets.All, AllowMultiple:=False, Inherited:=True)>
   Public Class lgSkipAttribute
     Inherits Attribute
@@ -21,8 +22,29 @@ Namespace SIS.SYS.Utilities
       End Set
     End Property
   End Class
+  Public Class mySVars
+    Public Property Key As String = ""
+    Public Property Value As Object = Nothing
+    Sub New(k As String, v As String)
+      Key = k
+      Value = v
+    End Sub
+    Sub New()
+      'dummy
+    End Sub
+  End Class
+
   Public Class SessionManager
     Public Shared ci As System.Globalization.CultureInfo = New System.Globalization.CultureInfo("en-GB", True)
+    Public Shared Function DoLogin(ByVal UserID As String) As Boolean
+      Dim mRet As Boolean = False
+      If Membership.ValidateUser(UserID, GetPassword(UserID)) Then
+        FormsAuthentication.RedirectFromLoginPage(UserID, True)
+        SIS.SYS.Utilities.SessionManager.InitializeEnvironment(UserID)
+        mRet = True
+      End If
+      Return mRet
+    End Function
 
     Public Shared Function AuthenticateRegisteredUser(ByVal UserID As String) As Boolean
       Dim mRet As Boolean = False
@@ -102,6 +124,20 @@ Namespace SIS.SYS.Utilities
       SIS.SYS.Utilities.ApplicationSpacific.Initialize()
     End Sub
     Public Shared Sub DestroySessionEnvironement()
+
+      If HttpContext.Current.Session("LastURL") IsNot Nothing Then
+        Dim RedirectURL As String = HttpContext.Current.Session("LastURL")
+        Dim mVars As List(Of mySVars) = HttpContext.Current.Session("LastVars")
+        Dim UserID As String = HttpContext.Current.Session("LoginID")
+        HttpContext.Current.Session.Clear()
+        'For Each tmp As mySVars In mVars
+        '  HttpContext.Current.Session(tmp.Key) = tmp.Value
+        'Next
+        RedirectURL = RedirectURL.Replace("mMenu", "mDefault")
+        RedirectURL &= "?UserID=" & UserID
+        HttpContext.Current.Response.Redirect(RedirectURL)
+      End If
+
       With HttpContext.Current
         .Session.Clear()
         .Session.Abandon()

@@ -575,6 +575,29 @@ Namespace SIS.TDPUR
       End Using
       Return Results
     End Function
+    Public Shared Function UpdateTSID(ByVal t_rqno As String, ByVal t_pono As Int32, ByVal TSID As Integer, Optional ByVal Comp As String = "200") As Boolean
+      Dim mRet As Boolean = True
+      Dim Sql As String = ""
+      Sql &= " update "
+      Sql &= " ttdpur201" & Comp
+      Sql &= " set t_tsid=" & TSID
+      Sql &= " where "
+      Sql &= " t_rqno = '" & t_rqno & "'"
+      Sql &= " and t_pono = " & t_pono
+      Using Con As SqlConnection = New SqlConnection(SIS.SYS.SQLDatabase.DBCommon.GetBaaNConnectionString())
+        Using Cmd As SqlCommand = Con.CreateCommand()
+          Cmd.CommandType = CommandType.Text
+          Cmd.CommandText = Sql
+          Try
+            Con.Open()
+            Cmd.ExecuteNonQuery()
+          Catch ex As Exception
+            mRet = False
+          End Try
+        End Using
+      End Using
+      Return mRet
+    End Function
     Public Sub New(ByVal Reader As SqlDataReader)
       Try
         For Each pi As System.Reflection.PropertyInfo In Me.GetType.GetProperties

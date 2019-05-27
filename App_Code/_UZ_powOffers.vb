@@ -226,6 +226,7 @@ Namespace SIS.POW
       With Results
         .StatusID = enumOfferStates.Submitted
         .SubmittedBy = HttpContext.Current.Session("LoginID")
+        .SubmittedOn = Now
         If .ForSupplier Then
           .SubmittedBy = .FK_POW_Offers_EnquiryID.SupplierLoginID
         End If

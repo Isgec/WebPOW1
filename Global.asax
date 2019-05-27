@@ -1,18 +1,6 @@
 <%@ Application Language="VB" %>
 
 <script runat="server">
-  Public Class mySVars
-    Public Property Key As String = ""
-    Public Property Value As Object = Nothing
-    Sub New(k As String, v As String)
-      Key = k
-      Value = v
-    End Sub
-    Sub New()
-      'dummy
-    End Sub
-  End Class
-
   Sub Application_Start(ByVal sender As Object, ByVal e As EventArgs)
   End Sub
 
@@ -25,39 +13,29 @@
 
   Sub Session_Start(ByVal sender As Object, ByVal e As EventArgs)
     If HttpContext.Current.User.Identity.IsAuthenticated Then
-      Dim LastURL As String = HttpContext.Current.Request.UrlReferrer.ToString
-      Dim mVars As New List(Of mySVars)
-      For Each str As String In Session.Keys
-        mVars.Add(New mySVars(str, Session(str)))
-      Next
-      SIS.SYS.Utilities.SessionManager.InitializeEnvironment(HttpContext.Current.User.Identity.Name)
-      HttpContext.Current.Session("LastURL") = LastURL.Replace("mMenu.aspx", "mDefault.aspx")
-      HttpContext.Current.Session("LastVars") = mVars
-      'Get Redirect URL from Authorization, there It needs to create default page for role.
-      Dim RedirectURL As String = "~/POW_Main/App_Forms/GF_powTechnicalSpecifications.aspx"
-      Response.Redirect(RedirectURL)
-    Else
-      Try
-        SIS.SYS.Utilities.SessionManager.CreateSessionEnvironement()
-      Catch ex As Exception
-      End Try
+      'Authenticated User will come only from Mobile App
+      'Store LastURL, If it is allready stored then do nothing
+      If HttpContext.Current.Session("LastURL") Is Nothing Then
+        Dim LastURL As String = HttpContext.Current.Request.UrlReferrer.ToString
+        Dim mVars As New List(Of SIS.SYS.Utilities.mySVars)
+        For Each str As String In Session.Keys
+          mVars.Add(New SIS.SYS.Utilities.mySVars(str, Session(str)))
+        Next
+        Dim UserID As String = HttpContext.Current.User.Identity.Name
+        If SIS.SYS.Utilities.SessionManager.DoLogin(UserID) Then
+          HttpContext.Current.Session("LastURL") = LastURL
+          HttpContext.Current.Session("LastVars") = mVars
+          HttpContext.Current.Session("BrowserWidth") = 1001
+          Dim RedirectURL As String = "~/POW_Main/App_Forms/GF_powTechnicalSpecifications.aspx"
+          Response.Redirect(RedirectURL)
+        End If
+      End If
     End If
   End Sub
 
   Sub Session_End(ByVal sender As Object, ByVal e As EventArgs)
     Try
       SIS.SYS.Utilities.SessionManager.DestroySessionEnvironement()
-      'LoggedOut Destroyes all variables, must be handled there first
-      'If HttpContext.Current.Session("LastURL") IsNot Nothing Then
-      '  Dim RedirectURL As String = HttpContext.Current.Session("LastURL")
-      '  Dim mVars As List(Of mySVars) = HttpContext.Current.Session("LastVars")
-      '  For Each tmp As mySVars In mVars
-      '    HttpContext.Current.Session(tmp.Key) = tmp.Value
-      '  Next
-      '  Server.Transfer(RedirectURL)
-      'Else
-      '  SIS.SYS.Utilities.SessionManager.DestroySessionEnvironement()
-      'End If
     Catch ex As Exception
     End Try
   End Sub
