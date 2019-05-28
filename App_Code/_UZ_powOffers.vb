@@ -321,10 +321,41 @@ Namespace SIS.POW
         SIS.POW.Alerts.UnderEvaluation(tmpOfr)
       Catch ex As Exception
       End Try
+      '======Update CT======
+      If CType(ConfigurationManager.AppSettings("UpdateCT"), Boolean) Then
+        Dim Indents As List(Of SIS.POW.powTSIndents) = SIS.POW.powTSIndents.UZ_powTSIndentsSelectList(0, 999, "", False, "", tmpOfr.TSID)
+        Dim Comp As String = SIS.RFQ.rfqGeneral.GetERPCompanyByIndentNo(Indents(0).IndentNo)
+        Dim enq As SIS.POW.powEnquiries = tmpOfr.FK_POW_Offers_EnquiryID
+        CT_Update_UnderEvaluation(tmpOfr, Comp)
+      End If
+      '======================
       Return tmpOfr
-
-
     End Function
+    Private Shared Sub CT_Update_UnderEvaluation(ByVal pEnq As SIS.POW.powOffers, Optional ByVal Comp As String = "200")
+      Dim Sql As String = ""
+      Using Con As SqlConnection = New SqlConnection(SIS.SYS.SQLDatabase.DBCommon.GetBaaNConnectionString())
+        Con.Open()
+        Sql = ""
+        Sql &= "   UPDATE [tdmisg168" & Comp & "] "
+        Sql &= "   SET "
+        Sql &= "   [t_stat] ='Technical offer Received' "
+        Sql &= "   ,[t_rcno] ='" & pEnq.ReceiptID & "'"
+        Sql &= "   WHERE "
+        Sql &= "   [t_wfid] =" & pEnq.EnquiryID
+        Sql &= "   AND [t_pwfd] =" & pEnq.TSID
+        Sql &= "   AND [t_stat] <>'Enquiry For Techno Commercial Negotiation Completed' "
+        Using Cmd As SqlCommand = Con.CreateCommand()
+          Cmd.CommandType = CommandType.Text
+          Cmd.CommandText = Sql
+          Try
+            Cmd.ExecuteNonQuery()
+          Catch ex As Exception
+            Throw New Exception(Sql)
+          End Try
+        End Using
+      End Using
+    End Sub
+
     Private Shared Sub DistributeInERP(ByVal ReceiptNo As String, ByVal RevisionNo As String)
       Dim CardNo As String = Convert.ToInt32(HttpContext.Current.Session("LoginID"))
 

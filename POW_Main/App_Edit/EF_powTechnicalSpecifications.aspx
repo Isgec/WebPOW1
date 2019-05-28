@@ -40,16 +40,15 @@
             DataSourceID="ODSpowTechnicalSpecifications"
             DefaultMode="Edit">
             <EditItemTemplate>
-  <div id="accordion">
-    <div class="card">
-      <div class="card-header">
-        <a class="card-link" data-toggle="collapse" href="#collapseOne">
-          Click to Show or Hide Technical Specification Details
-        </a>
-      </div>
-      <div id="collapseOne" class="collapse" data-parent="#accordion">
-        <div class="card-body">
-
+    <div id="accordion">
+      <div class="card">
+        <div class="card-header">
+          <a class="card-link" data-toggle="collapse" href="#collapseOne">
+            Click to Show or Hide Technical Specification Details
+          </a>
+        </div>
+        <div id="collapseOne" class="collapse" data-parent="#accordion">
+          <div class="card-body">
               <div class="row">
                 <div class="col-sm-4">
                   <asp:Label ID="L_TSID" runat="server" Font-Bold="True" ForeColor="#CC6633" Text="TSID :" /><span style="color: red">*</span>

@@ -295,11 +295,37 @@ Namespace SIS.POW
       Results = SIS.POW.powTechnicalSpecifications.UpdateData(Results)
       '====Update CT=============
       If CType(ConfigurationManager.AppSettings("UpdateCT"), Boolean) Then
-
+        Dim Indents As List(Of SIS.POW.powTSIndents) = SIS.POW.powTSIndents.UZ_powTSIndentsSelectList(0, 999, "", False, "", Results.TSID)
+        Dim Comp As String = SIS.RFQ.rfqGeneral.GetERPCompanyByIndentNo(Indents(0).IndentNo)
+        CT_Update_AllOfferReceived(Results, Comp)
       End If
       '==========================
       Return Results
     End Function
+    Private Shared Sub CT_Update_AllOfferReceived(ByVal pTS As SIS.POW.powTechnicalSpecifications, Optional ByVal Comp As String = "200")
+      Dim Sql As String = ""
+      Using Con As SqlConnection = New SqlConnection(SIS.SYS.SQLDatabase.DBCommon.GetBaaNConnectionString())
+        Con.Open()
+        Sql = ""
+        Sql &= "   UPDATE [tdmisg168" & Comp & "] "
+        Sql &= "   SET "
+        Sql &= "   [t_stat] ='All Offer Received' "
+        Sql &= "   WHERE "
+        Sql &= "   [t_wfid] =" & pTS.TSID
+        Sql &= "   AND [t_pwfd] = 0 "
+        Sql &= "   AND [t_stat] <> 'Commercial offer Finalized' "
+        Using Cmd As SqlCommand = Con.CreateCommand()
+          Cmd.CommandType = CommandType.Text
+          Cmd.CommandText = Sql
+          Try
+            Cmd.ExecuteNonQuery()
+          Catch ex As Exception
+            Throw New Exception(Sql)
+          End Try
+        End Using
+      End Using
+    End Sub
+
     Public Shared Function CompleteWF(ByVal TSID As Int32) As SIS.POW.powTechnicalSpecifications
       Dim Results As SIS.POW.powTechnicalSpecifications = powTechnicalSpecificationsGetByID(TSID)
       With Results
@@ -309,11 +335,36 @@ Namespace SIS.POW
       Results = SIS.POW.powTechnicalSpecifications.UpdateData(Results)
       '====Update CT=============
       If CType(ConfigurationManager.AppSettings("UpdateCT"), Boolean) Then
-
+        Dim Indents As List(Of SIS.POW.powTSIndents) = SIS.POW.powTSIndents.UZ_powTSIndentsSelectList(0, 999, "", False, "", Results.TSID)
+        Dim Comp As String = SIS.RFQ.rfqGeneral.GetERPCompanyByIndentNo(Indents(0).IndentNo)
+        CT_Update_CommercialFinalized(Results, Comp)
       End If
       '==========================
       Return Results
     End Function
+    Private Shared Sub CT_Update_CommercialFinalized(ByVal pTS As SIS.POW.powTechnicalSpecifications, Optional ByVal Comp As String = "200")
+      Dim Sql As String = ""
+      Using Con As SqlConnection = New SqlConnection(SIS.SYS.SQLDatabase.DBCommon.GetBaaNConnectionString())
+        Con.Open()
+        Sql = ""
+        Sql &= "   UPDATE [tdmisg168" & Comp & "] "
+        Sql &= "   SET "
+        Sql &= "   [t_stat] ='Commercial offer Finalized' "
+        Sql &= "   WHERE "
+        Sql &= "   [t_wfid] =" & pTS.TSID
+        Sql &= "   AND [t_pwfd] = 0 "
+        Sql &= "   AND [t_stat] <>'Commercial offer Finalized' "
+        Using Cmd As SqlCommand = Con.CreateCommand()
+          Cmd.CommandType = CommandType.Text
+          Cmd.CommandText = Sql
+          Try
+            Cmd.ExecuteNonQuery()
+          Catch ex As Exception
+            Throw New Exception(Sql)
+          End Try
+        End Using
+      End Using
+    End Sub
     Public Shared Function SetDefaultValues(ByVal sender As System.Web.UI.WebControls.FormView, ByVal e As System.EventArgs) As System.Web.UI.WebControls.FormView
       With sender
         Try
@@ -330,25 +381,25 @@ Namespace SIS.POW
       Dim Sql As String = ""
       Sql &= "   INSERT [tdmisg168" & Comp & "] "
       Sql &= "   ( "
-      Sql &= "    [t_wfid] "
-      Sql &= "   ,[t_pwfd] "
-      Sql &= "   ,[t_cprj] "
-      Sql &= "   ,[t_elem] "
-      Sql &= "   ,[t_spec] "
-      Sql &= "   ,[t_bpid] "
-      Sql &= "   ,[t_stat] "
-      Sql &= "   ,[t_user] "
-      Sql &= "   ,[t_date] "
-      Sql &= "   ,[t_supp] "
-      Sql &= "   ,[t_snam] "
-      Sql &= "   ,[t_rdno] "
-      Sql &= "   ,[t_docn] "
-      Sql &= "   ,[t_supc] "
-      Sql &= "   ,[t_rcno] "
-      Sql &= "   ,[t_mngr] "
-      Sql &= "   ,[t_esub] "
-      Sql &= "   ,[t_Refcntd] "
-      Sql &= "   ,[t_Refcntu] "
+      Sql &= "    [t_wfid] " 'int
+      Sql &= "   ,[t_pwfd] " 'int
+      Sql &= "   ,[t_cprj] " '9
+      Sql &= "   ,[t_elem] " '8
+      Sql &= "   ,[t_spec] " '50
+      Sql &= "   ,[t_bpid] " '8 ?should be 9
+      Sql &= "   ,[t_stat] " '100
+      Sql &= "   ,[t_user] " '8
+      Sql &= "   ,[t_date] " 'dt
+      Sql &= "   ,[t_supp] " '300
+      Sql &= "   ,[t_snam] " '100
+      Sql &= "   ,[t_rdno] " '8
+      Sql &= "   ,[t_docn] " '256
+      Sql &= "   ,[t_supc] " '50
+      Sql &= "   ,[t_rcno] " '9
+      Sql &= "   ,[t_mngr] " '8
+      Sql &= "   ,[t_esub] " '215
+      Sql &= "   ,[t_Refcntd] " '0
+      Sql &= "   ,[t_Refcntu] " '0
       Sql &= "   ) "
       Sql &= "   VALUES "
       Sql &= "   ( "
@@ -356,7 +407,7 @@ Namespace SIS.POW
       Sql &= "   , " & 0
       Sql &= "   ,'" & pWF.ProjectID
       Sql &= "   ,'" & pWF.ElementID
-      Sql &= "   ,''"
+      Sql &= "   ,'" & IIf(pWF.LotItem.Length > 50, pWF.LotItem.Substring(0, 50), pWF.LotItem) & "'"
       Sql &= "   ,'" & pWF.BuyerID & "'"
       Sql &= "   ,'" & "Technical Specification Released" & "'"
       Sql &= "   ,'" & pWF.FK_POW_TSIndents_TSID.CreatedBy & "'"
@@ -365,9 +416,9 @@ Namespace SIS.POW
       Sql &= "   ,''" '& pWF.SupplierName & "'"
       Sql &= "   ,''" '& pWF.RandomNo & "'"
       Sql &= "   ,'" & "Indent/Line No.: " & pWF.IndentNo & "/" & pWF.IndentLine & "'"
-      Sql &= "   ,'" & pWF.LotItem & "'"
+      Sql &= "   ,''" '& pWF.LotItem & "'"
       Sql &= "   ,''" '& pWF.ReceiptNo & "'"
-      Sql &= "   ,''" '& pWF.FK_POW_TSIndents_TSID.AdditionalEMailIDs & "'"
+      Sql &= "   ,'" & pWF.IndenterID & "'"
       Sql &= "   ,''" '& pWF.EmailSubject & "'"
       Sql &= "   ,0"
       Sql &= "   ,0"

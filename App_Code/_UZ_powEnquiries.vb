@@ -130,6 +130,13 @@ Namespace SIS.POW
         .OfferReceivedOn = Now
       End With
       Results = SIS.POW.powEnquiries.UpdateData(Results)
+      '======Update CT======
+      If CType(ConfigurationManager.AppSettings("UpdateCT"), Boolean) Then
+        Dim Indents As List(Of SIS.POW.powTSIndents) = SIS.POW.powTSIndents.UZ_powTSIndentsSelectList(0, 999, "", False, "", Results.TSID)
+        Dim Comp As String = SIS.RFQ.rfqGeneral.GetERPCompanyByIndentNo(Indents(0).IndentNo)
+        CT_Update_OfferReceived(Results, Comp)
+      End If
+      '======================
       Return Results
     End Function
 
@@ -343,6 +350,14 @@ Namespace SIS.POW
       SIS.POW.Alerts.EnquirySent(tmp.TSID, tmp.EnquiryID)
       '9. Send LoginID
       SIS.POW.Alerts.SendAuthentication(tmp.TSID, tmp.EnquiryID)
+      '10. 
+      '======Update CT======
+      If CType(ConfigurationManager.AppSettings("UpdateCT"), Boolean) Then
+        Dim Indents As List(Of SIS.POW.powTSIndents) = SIS.POW.powTSIndents.UZ_powTSIndentsSelectList(0, 999, "", False, "", tmp.TSID)
+        Dim Comp As String = SIS.RFQ.rfqGeneral.GetERPCompanyByIndentNo(Indents(0).IndentNo)
+        CT_Update_EnquiryRaised(Indents(0), tmp, tmpTS, Comp)  'By First Indent 
+      End If
+      '======================
       Return tmp
     End Function
     Public Shared Function ApproveWF(ByVal TSID As Int32, ByVal EnquiryID As Int32) As SIS.POW.powEnquiries
@@ -356,6 +371,13 @@ Namespace SIS.POW
         .CommercialNegotiationCompletedOn = Now
       End With
       Results = SIS.POW.powEnquiries.UpdateData(Results)
+      '======Update CT======
+      If CType(ConfigurationManager.AppSettings("UpdateCT"), Boolean) Then
+        Dim Indents As List(Of SIS.POW.powTSIndents) = SIS.POW.powTSIndents.UZ_powTSIndentsSelectList(0, 999, "", False, "", Results.TSID)
+        Dim Comp As String = SIS.RFQ.rfqGeneral.GetERPCompanyByIndentNo(Indents(0).IndentNo)
+        CT_Update_OfferNegotiated(Results, Comp)
+      End If
+      '======================
       Return Results
     End Function
     Public Shared Function UZ_powEnquiriesSelectList(ByVal StartRowIndex As Integer, ByVal MaximumRows As Integer, ByVal OrderBy As String, ByVal SearchState As Boolean, ByVal SearchText As String, ByVal TSID As Int32) As List(Of SIS.POW.powEnquiries)
@@ -436,5 +458,129 @@ Namespace SIS.POW
       End With
       Return sender
     End Function
+    Private Shared Sub CT_Update_OfferNegotiated(ByVal pEnq As SIS.POW.powEnquiries, Optional ByVal Comp As String = "200")
+      Dim Sql As String = ""
+      Using Con As SqlConnection = New SqlConnection(SIS.SYS.SQLDatabase.DBCommon.GetBaaNConnectionString())
+        Con.Open()
+        Sql = ""
+        Sql &= "   UPDATE [tdmisg168" & Comp & "] "
+        Sql &= "   SET "
+        Sql &= "   [t_stat] ='Enquiry For Techno Commercial Negotiation Completed' "
+        Sql &= "   WHERE "
+        Sql &= "   [t_wfid] =" & pEnq.EnquiryID
+        Sql &= "   AND [t_pwfd] =" & pEnq.TSID
+        Sql &= "   AND [t_stat] ='Technical offer Received' "
+        Using Cmd As SqlCommand = Con.CreateCommand()
+          Cmd.CommandType = CommandType.Text
+          Cmd.CommandText = Sql
+          Try
+            Cmd.ExecuteNonQuery()
+          Catch ex As Exception
+            Throw New Exception(Sql)
+          End Try
+        End Using
+      End Using
+    End Sub
+    Private Shared Sub CT_Update_OfferReceived(ByVal pEnq As SIS.POW.powEnquiries, Optional ByVal Comp As String = "200")
+      Dim Sql As String = ""
+      Using Con As SqlConnection = New SqlConnection(SIS.SYS.SQLDatabase.DBCommon.GetBaaNConnectionString())
+        Con.Open()
+        Sql = ""
+        Sql &= "   UPDATE [tdmisg168" & Comp & "] "
+        Sql &= "   SET "
+        Sql &= "   [t_stat] ='Technical offer Received' "
+        Sql &= "   WHERE "
+        Sql &= "   [t_wfid] =" & pEnq.EnquiryID
+        Sql &= "   AND [t_pwfd] =" & pEnq.TSID
+        Sql &= "   AND [t_stat] ='Enquiry Raised' "
+        Using Cmd As SqlCommand = Con.CreateCommand()
+          Cmd.CommandType = CommandType.Text
+          Cmd.CommandText = Sql
+          Try
+            Cmd.ExecuteNonQuery()
+          Catch ex As Exception
+            Throw New Exception(Sql)
+          End Try
+        End Using
+      End Using
+    End Sub
+    Private Shared Sub CT_Update_EnquiryRaised(ByVal pWF As SIS.POW.powTSIndents, ByVal pEnq As SIS.POW.powEnquiries, ByVal tmpTS As SIS.POW.powTechnicalSpecifications, Optional ByVal Comp As String = "200")
+      '1. Insert Enquiry Line
+      Dim Sql As String = ""
+      Sql &= "   INSERT [tdmisg168" & Comp & "] "
+      'Sql &= "   ( [t_wfid] ,[t_pwfd] ,[t_cprj] ,[t_elem] ,[t_spec] ,[t_bpid] ,[t_stat] ,[t_user] ,[t_date] ,[t_supp] ,[t_snam] ,[t_rdno] ,[t_docn] ,[t_supc] ,[t_rcno] ,[t_mngr] ,[t_esub] ,[t_Refcntd] ,[t_Refcntu] ) "
+      Sql &= "   ( "
+      Sql &= "    [t_wfid] " 'int
+      Sql &= "   ,[t_pwfd] " 'int
+      Sql &= "   ,[t_cprj] " '9
+      Sql &= "   ,[t_elem] " '8
+      Sql &= "   ,[t_spec] " '50
+      Sql &= "   ,[t_bpid] " '8 ?should be 9
+      Sql &= "   ,[t_stat] " '100
+      Sql &= "   ,[t_user] " '8
+      Sql &= "   ,[t_date] " 'dt
+      Sql &= "   ,[t_supp] " '300
+      Sql &= "   ,[t_snam] " '100
+      Sql &= "   ,[t_rdno] " '8
+      Sql &= "   ,[t_docn] " '256
+      Sql &= "   ,[t_supc] " '50
+      Sql &= "   ,[t_rcno] " '9
+      Sql &= "   ,[t_mngr] " '8
+      Sql &= "   ,[t_esub] " '215
+      Sql &= "   ,[t_Refcntd] " '0
+      Sql &= "   ,[t_Refcntu] " '0
+      Sql &= "   ) "
+      Sql &= "   VALUES "
+      Sql &= "   ( "
+      Sql &= "     " & pEnq.EnquiryID
+      Sql &= "   , " & pEnq.TSID
+      Sql &= "   ,'" & pWF.ProjectID
+      Sql &= "   ,'" & pWF.ElementID
+      Sql &= "   ,''"
+      Sql &= "   ,'" & pWF.BuyerID & "'"
+      Sql &= "   ,'" & "Enquiry Raised" & "'"
+      Sql &= "   ,'" & pEnq.CreatedBy & "'"
+      Sql &= "   ,convert(datetime,'" & pEnq.CreatedOn & "',103)"
+      Sql &= "   ,'" & pEnq.SupplierID & "'"
+      Sql &= "   ,'" & pEnq.SupplierName & "'"
+      Sql &= "   ,''" '& pEnq.VendorKey & "'"
+      Sql &= "   ,''" '& "Indent/Line No.: " & pWF.IndentNo & "/" & pWF.IndentLine & "'"
+      Sql &= "   ,''" '& pWF.LotItem & "'"
+      Sql &= "   ,''" '& pWF.ReceiptNo & "'"
+      Sql &= "   ,'" & pWF.IndenterID & "'"
+      Sql &= "   ,'" & pEnq.EMailSubject & "'"
+      Sql &= "   ,0"
+      Sql &= "   ,0"
+      Sql &= "   ) "
+      Using Con As SqlConnection = New SqlConnection(SIS.SYS.SQLDatabase.DBCommon.GetBaaNConnectionString())
+        Con.Open()
+        Using Cmd As SqlCommand = Con.CreateCommand()
+          Cmd.CommandType = CommandType.Text
+          Cmd.CommandText = Sql
+          Try
+            Cmd.ExecuteNonQuery()
+          Catch ex As Exception
+            Throw New Exception(Sql)
+          End Try
+        End Using
+        '2. Update TS Status [Enquiry In Progress]
+        Sql = ""
+        Sql &= "   UPDATE [tdmisg168" & Comp & "] "
+        Sql &= "   SET "
+        Sql &= "   [t_stat] ='Enquiry in progress' "
+        Sql &= "   WHERE "
+        Sql &= "   [t_wfid] =" & tmpTS.TSID
+        Sql &= "   AND [t_stat] ='Technical Specification Released' "
+        Using Cmd As SqlCommand = Con.CreateCommand()
+          Cmd.CommandType = CommandType.Text
+          Cmd.CommandText = Sql
+          Try
+            Cmd.ExecuteNonQuery()
+          Catch ex As Exception
+            Throw New Exception(Sql)
+          End Try
+        End Using
+      End Using
+    End Sub
   End Class
 End Namespace

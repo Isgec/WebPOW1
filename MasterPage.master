@@ -6,18 +6,17 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>ISGEC-Mobile App</title>
   <link rel="SHORTCUT ICON" type="image/x-icon" runat="server" href="~/isgec.ico" />
-  <!--Existing Pure CSS Menu-->
-  <!--JQuery 3.3-->
+  <%--JQuery 3.3--%>
   <script type="text/javascript" src="/../UserRights/jq3.3/jquery-3.3.1.min.js"></script>
-  <!-- Font 4.7-->
+  <%--Font 4.7--%>
   <link href="/../UserRights/fa4.7/css/font-awesome.min.css" rel="stylesheet" />
-  <!--Bootstrap 4.0 uses Jquery 3 or above, Popper & Tooltip-->
+  <%--Bootstrap 4.0 uses Jquery 3 or above, Popper & Tooltip--%>
   <link rel="stylesheet" href="/../UserRights/bs4.0/css/bootstrap.min.css" />
   <script type="text/javascript" src="/../UserRights/Popper1.0/Popper.min.js"></script>
   <script type="text/javascript" src="/../UserRights/bs4.0/js/bootstrap.min.js"></script>
- 
   <asp:ContentPlaceHolder ID="cphMain" runat="server" EnableViewState="true">
   </asp:ContentPlaceHolder>
+  <%--Overriding Legend Style--%>
   <style type="text/css">
     /* overriding LEGEND defined in BS with my value */
     legend {
@@ -39,10 +38,67 @@
       background-image: -o-linear-gradient(top, #0272a7, #013953);
     }
   </style>
+  <%--Side Scroll Style and Script--%>
+  <style>
+    .sidenav {
+      height: 100%;
+      width: 0;
+      position: fixed;
+      z-index: 1;
+      top: 0;
+      left: 0;
+      background-color: #111;
+      overflow-x: hidden;
+      transition: 0.5s;
+      padding-top: 60px;
+    }
+
+      .sidenav a {
+        padding: 8px 8px 8px 32px;
+        text-decoration: none;
+        /*font-size: 25px;*/
+        /*color: #818181;*/
+        color:chartreuse;
+        display: block;
+        transition: 0.3s;
+      }
+
+        .sidenav a:hover {
+          color: #f1f1f1;
+        }
+
+      .sidenav .closebtn {
+        position: absolute;
+        top: 0;
+        right: 25px;
+        font-size: 36px;
+        margin-left: 50px;
+      }
+
+    @media screen and (max-height: 450px) {
+      .sidenav {
+        padding-top: 15px;
+      }
+
+        .sidenav a {
+          font-size: 18px;
+        }
+    }
+  </style>
+  <script>
+    function openNav() {
+      document.getElementById("mySidenav").style.width = "250px";
+    }
+
+    function closeNav() {
+      document.getElementById("mySidenav").style.width = "0";
+    }
+  </script>
+  <%--End of SideScroll Menu--%>
 </head>
 <body>
   <form id="form1" runat="server">
-    <!--Patch for webkit based browser, chrome & safari-->
+    <%--Patch for webkit based browser, chrome & safari--%>
     <asp:ScriptManager ID="ToolkitScriptManager1" EnableScriptGlobalization="true" runat="server" EnablePageMethods="true" AsyncPostBackTimeout="3600" EnableScriptLocalization="True" ScriptMode="Auto">
       <Scripts>
         <asp:ScriptReference Path="~/jq3.3/ui/webkit.js" />
