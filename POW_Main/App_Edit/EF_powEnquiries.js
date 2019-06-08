@@ -96,6 +96,8 @@ var script_powEnquiries = {
       if(script_powEnquiries.validated_FK_POW_Enquiries_SupplierID_main){
         var o_d = $get(p[1]+'_Display');
         try{o_d.innerHTML = p[2];}catch(ex){}
+        var o_e = $get('F_SupplierEMailID');
+        try{o_e.value = p[3];}catch(ex){}
       }
       o.style.backgroundImage  = 'none';
       if(p[0]=='1'){

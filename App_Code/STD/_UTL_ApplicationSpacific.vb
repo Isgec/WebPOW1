@@ -22,6 +22,31 @@ Namespace SIS.SYS.Utilities
     End Function
   End Class
   Public Class ApplicationSpacific
+    Public Shared Function GenerateSupplierAuthorization(ByVal UserID As String, Optional ByVal Forced As Boolean = False) As Boolean
+      Dim mGenerate As Boolean = True
+      Dim ForApplication As String = HttpContext.Current.Session("ApplicationID")
+      Dim mFile As String = HttpContext.Current.Server.MapPath("~/../UserRights/") & ForApplication & "/" & UserID & "_nMenu.xml"
+      If Not Forced Then
+        If IO.File.Exists(mFile) Then
+          mGenerate = False
+        End If
+      End If
+      If mGenerate Then
+        Dim oWS As New WebAuthorization.WebAuthorizationServiceSoapClient
+        Dim Roles() As String = Web.Configuration.WebConfigurationManager.AppSettings("SupplierRoleID").ToString.Split(",".ToCharArray)
+        Dim str As String = ""
+        For Each role As String In Roles
+          Try
+            str = oWS.CreateWebAuthorization(102, UserID, role)
+          Catch ex As Exception
+          End Try
+          If str <> String.Empty Then
+            Exit For
+          End If
+        Next
+      End If
+      Return True
+    End Function
     Public Shared Sub Initialize()
       With HttpContext.Current
         .Session("ApplicationID") = 102

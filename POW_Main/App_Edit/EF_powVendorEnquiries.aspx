@@ -48,10 +48,8 @@
           Click to Show or Hide Enquiry Details
         </a>
       </div>
-      <div id="collapseOne" class="collapse" data-parent="#accordion">
+      <div id="collapseOne" class="collapse show" data-parent="#accordion">
         <div class="card-body">
-
-
               <div class="row">
                 <div class="col-sm-4">
                   <b>
@@ -227,6 +225,11 @@
                     Width="168px"
                     CssClass="dmytxt"
                     runat="server" />
+                </div>
+              </div>
+              <div class="row">
+                <div class="col-sm-12 text-center">
+                  <asp:button ID="cmdAddNew" runat="server" Text="Create Offer" CssClass="btn btn-success" OnClick="CmdAddNew_Clicked" />
                 </div>
               </div>
 

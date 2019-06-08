@@ -417,6 +417,11 @@ Namespace SIS.POW
     Public Shared Function UZ_powEnquiriesInsert(ByVal Record As SIS.POW.powEnquiries) As SIS.POW.powEnquiries
       Record = powEnquiriesInsert(Record)
       SIS.EDI.ediAFile.ediAFileCopy("J_PREORDER_TECHSPEC", Record.TSID, "J_PREORDER_ENQUIRY", Record.TSID & "_" & Record.EnquiryID)
+      'Update E-mailID's in Supplier Master
+      If Record.SupplierID <> "" Then
+        Record.FK_POW_Enquiries_SupplierID.EMailID = Record.SupplierEMailID
+        SIS.VR.vrBusinessPartner.UpdateData(Record.FK_POW_Enquiries_SupplierID)
+      End If
       Return Record
     End Function
     Public Shared Function UZ_powEnquiriesUpdate(ByVal Record As SIS.POW.powEnquiries) As SIS.POW.powEnquiries
@@ -432,7 +437,13 @@ Namespace SIS.POW
         .EMailBody = Record.EMailBody
         .SupplierEMailID = Record.SupplierEMailID
       End With
-      Return SIS.POW.powEnquiries.UpdateData(_Rec)
+      _Rec = SIS.POW.powEnquiries.UpdateData(_Rec)
+      'Update E-mailID's in Supplier Master
+      If Record.SupplierID <> "" Then
+        Record.FK_POW_Enquiries_SupplierID.EMailID = Record.SupplierEMailID
+        SIS.VR.vrBusinessPartner.UpdateData(Record.FK_POW_Enquiries_SupplierID)
+      End If
+      Return _Rec
     End Function
     Public Shared Function UZ_powEnquiriesDelete(ByVal Record As SIS.POW.powEnquiries) As Integer
       Dim _Result As Integer = powEnquiriesDelete(Record)
@@ -458,6 +469,34 @@ Namespace SIS.POW
       End With
       Return sender
     End Function
+    Public Shared Function CopyEnquiry(ByVal TSID As Int32, ByVal EnquiryID As Int32) As SIS.POW.powEnquiries
+      Dim Record As SIS.POW.powEnquiries = powEnquiriesGetByID(TSID, EnquiryID)
+      Dim Results As New SIS.POW.powEnquiries
+      With Results
+        .SupplierID = ""
+        .SupplierName = ""
+        .EMailSubject = Record.EMailSubject
+        .StatusID = enumEnquiryStates.EnquiryCreated
+        .SentOn = ""
+        .TSID = Record.TSID
+        .EnquiryID = 0
+        .AdditionalEMailIDs = Record.AdditionalEMailIDs
+        .EMailBody = Record.EMailBody
+        .SupplierLoginID = ""
+        .VendorKey = Guid.NewGuid().ToString
+        .SupplierEMailID = ""
+        .CreatedBy = HttpContext.Current.Session("LoginID")
+        .CreatedOn = Now
+        .SupplierFromEMailID = ""
+        .CommercialNegotiationCompletedOn = ""
+        .OfferReceivedOn = ""
+      End With
+      Results = SIS.POW.powEnquiries.InsertData(Results)
+      'Copy Attachments
+      SIS.EDI.ediAFile.ediAFileCopy(Record.AthHandle, Record.AthIndex, Results.AthHandle, Results.AthIndex)
+      Return Results
+    End Function
+
     Private Shared Sub CT_Update_OfferNegotiated(ByVal pEnq As SIS.POW.powEnquiries, Optional ByVal Comp As String = "200")
       Dim Sql As String = ""
       Using Con As SqlConnection = New SqlConnection(SIS.SYS.SQLDatabase.DBCommon.GetBaaNConnectionString())
@@ -476,7 +515,8 @@ Namespace SIS.POW
           Try
             Cmd.ExecuteNonQuery()
           Catch ex As Exception
-            Throw New Exception(Sql)
+            'Throw New Exception(Sql)
+            '====LogIt====
           End Try
         End Using
       End Using
@@ -499,7 +539,8 @@ Namespace SIS.POW
           Try
             Cmd.ExecuteNonQuery()
           Catch ex As Exception
-            Throw New Exception(Sql)
+            'Throw New Exception(Sql)
+            '====LogIt====
           End Try
         End Using
       End Using
@@ -560,7 +601,8 @@ Namespace SIS.POW
           Try
             Cmd.ExecuteNonQuery()
           Catch ex As Exception
-            Throw New Exception(Sql)
+            'Throw New Exception(Sql)
+            '====LogIt====
           End Try
         End Using
         '2. Update TS Status [Enquiry In Progress]
@@ -577,7 +619,8 @@ Namespace SIS.POW
           Try
             Cmd.ExecuteNonQuery()
           Catch ex As Exception
-            Throw New Exception(Sql)
+            'Throw New Exception(Sql)
+            '====LogIt====
           End Try
         End Using
       End Using

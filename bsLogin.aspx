@@ -3,6 +3,7 @@
   <div class="container">
     <div style="max-width: 400px; margin: 15px auto auto auto;" class="myborder">
 
+      <%--End Menu--%>
       <div class="row text-center">
         <div class="col">
           <img alt="ISGEC" src="App_Themes/Default/Images/Isgec2.JPG" />

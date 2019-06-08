@@ -90,6 +90,8 @@ Partial Class AF_powVendorOffers
         Next
         oF_FromEMailID.Text = oEnq.SupplierFromEMailID
       End If
+      CType(FVpowVendorOffers.FindControl("F_EMailSubject"), TextBox).Text = oEnq.EMailSubject
+
     End If
     If Request.QueryString("RecordID") IsNot Nothing Then
       CType(FVpowVendorOffers.FindControl("F_RecordID"), TextBox).Text = Request.QueryString("RecordID")

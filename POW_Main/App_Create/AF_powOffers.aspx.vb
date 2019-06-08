@@ -67,6 +67,8 @@ Partial Class AF_powOffers
     If Request.QueryString("EnquiryID") IsNot Nothing Then
       CType(FVpowOffers.FindControl("F_EnquiryID"), TextBox).Text = Request.QueryString("EnquiryID")
       CType(FVpowOffers.FindControl("F_EnquiryID"), TextBox).Enabled = False
+      Dim oVar As SIS.POW.powEnquiries = SIS.POW.powEnquiries.powEnquiriesGetByID(Request.QueryString("TSID"), Request.QueryString("EnquiryID"))
+      CType(FVpowOffers.FindControl("F_EMailSubject"), TextBox).Text = oVar.EMailSubject
     End If
     If Request.QueryString("RecordID") IsNot Nothing Then
       CType(FVpowOffers.FindControl("F_RecordID"), TextBox).Text = Request.QueryString("RecordID")

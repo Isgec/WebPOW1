@@ -34,7 +34,7 @@
           Click to Show or Hide Enquiry Details
         </a>
       </div>
-      <div id="collapseOne" class="collapse" data-parent="#accordion">
+      <div id="collapseOne" class="collapse show" data-parent="#accordion">
         <div class="card-body">
 
               <div class="row">
@@ -145,6 +145,7 @@
                     onblur="this.value=this.value.replace(/\'/g,'');"
                     ToolTip="Enter Supplier's E-Mail ID."
                     MaxLength="100"
+                    ClientIDMode="Static"
                     runat="server" />
                   <asp:RequiredFieldValidator
                     ID="RFVSupplierEMailID"

@@ -47,7 +47,7 @@
             Click to Show or Hide Technical Specification Details
           </a>
         </div>
-        <div id="collapseOne" class="collapse" data-parent="#accordion">
+        <div id="collapseOne" class="collapse show" data-parent="#accordion">
           <div class="card-body">
               <div class="row">
                 <div class="col-sm-4">
@@ -193,6 +193,12 @@
                     runat="server" />
                 </div>
               </div>
+              <div class="row">
+                <div class="col-sm-12 text-center">
+                  <asp:button ID="cmdAddNew" runat="server" Text="Create Enquiry" CssClass="btn btn-success" OnClick="cmdAddNew_Clicked" />
+                </div>
+              </div>
+
           </div>
         </div>
       </div>
@@ -229,9 +235,9 @@
                           <asp:TemplateField HeaderText="ACTION">
                             <ItemTemplate>
                               <asp:Button Text="EDIT" CssClass="btn btn-sm btn-success" ID="xcmdEditPage" ValidationGroup="Edit" runat="server" Visible='<%# Eval("Visible") %>' Enabled='<%# EVal("Enable") %>' AlternateText="Edit" ToolTip="Edit the record." CommandName="lgEdit" CommandArgument='<%# Container.DataItemIndex %>' />
-                              <%--<asp:Button Text="SEND" CssClass="btn btn-sm btn-warning" ID="xcmdInitiateWF" ValidationGroup='<%# "Initiate" & Container.DataItemIndex %>' CausesValidation="true" runat="server" Visible='<%# EVal("InitiateWFVisible") %>' Enabled='<%# EVal("InitiateWFEnable") %>' AlternateText='<%# EVal("PrimaryKey") %>' ToolTip="Send / Re-Send Enquiry Alert and Login Details to Vendor" OnClientClick='<%# "return Page_ClientValidate(""Initiate" & Container.DataItemIndex & """) && confirm(""Raise Enquiry and send E-Mail to Vendor ?"");" %>' CommandName="InitiateWF" CommandArgument='<%# Container.DataItemIndex %>' />--%>
                               <asp:Button Text="UVO" CssClass="btn btn-sm btn-warning" ID="xcmdApproveWF" ValidationGroup='<%# "Approve" & Container.DataItemIndex %>' CausesValidation="true" runat="server" Visible='<%# EVal("ApproveWFVisible") %>' Enabled='<%# EVal("ApproveWFEnable") %>' AlternateText='<%# EVal("PrimaryKey") %>' ToolTip="Click to upload vendor Offer" OnClientClick='<%# "return Page_ClientValidate(""Approve" & Container.DataItemIndex & """) && confirm(""Upload Vendor Offer ?"");" %>' CommandName="ApproveWF" CommandArgument='<%# Container.DataItemIndex %>' />
                               <asp:Button Text="CNC" CssClass="btn btn-sm btn-danger" ID="xcmdCompleteWF" ValidationGroup='<%# "Complete" & Container.DataItemIndex %>' CausesValidation="true" runat="server" Visible='<%# EVal("CompleteWFVisible") %>' Enabled='<%# EVal("CompleteWFEnable") %>' AlternateText='<%# EVal("PrimaryKey") %>' ToolTip="Commercial Negotiation Completed" OnClientClick='<%# "return Page_ClientValidate(""Complete" & Container.DataItemIndex & """) && confirm(""Update Commericial Negotiation Completed ?"");" %>' CommandName="CompleteWF" CommandArgument='<%# Container.DataItemIndex %>' />
+                              <asp:Button Text="COPY" CssClass="btn btn-sm btn-dark" ID="xcmdCopy" runat="server" AlternateText='<%# Eval("PrimaryKey") %>' ToolTip="Create NEW Enquiry by copying" OnClientClick="return confirm('Copy Enquiry and Create New ?');" CommandName="lgCopy" CommandArgument='<%# Container.DataItemIndex %>' />
                             </ItemTemplate>
                             <HeaderStyle Width="30px" />
                           </asp:TemplateField>
@@ -249,9 +255,16 @@
                             <ItemStyle CssClass="alignCenter" />
                             <HeaderStyle CssClass="alignCenter" Width="40px" />
                           </asp:TemplateField>
+                          <asp:TemplateField HeaderText="COPY">
+                            <ItemTemplate>
+                              <asp:ImageButton ID="cmdCopy" ValidationGroup="Copy" runat="server" Visible='<%# Eval("Visible") %>' Enabled='<%# EVal("Enable") %>' AlternateText="Copy" ToolTip="Copy the record." SkinID="copy" CommandName="lgCopy" CommandArgument='<%# Container.DataItemIndex %>' />
+                            </ItemTemplate>
+                            <ItemStyle CssClass="alignCenter" />
+                            <HeaderStyle CssClass="alignCenter" Width="30px" />
+                          </asp:TemplateField>
                           <asp:TemplateField HeaderText="Supplier">
                             <ItemTemplate>
-                              <asp:Label ID="L_SupplierID" runat="server" ForeColor='<%# Eval("ForeColor") %>' Title='<%# EVal("GetSupplier") %>' Text='<%# Eval("GetSupplier") %>'></asp:Label>
+                              <asp:Button ID="L_SupplierID" runat="server" ForeColor='<%# Eval("ForeColor") %>' BorderStyle="None" BackColor="Transparent" style="cursor:pointer;" Font-Underline="true" Title='<%# EVal("GetSupplier") %>' Text='<%# Eval("GetSupplier") %>' CommandName="lgEmailIDs" CommandArgument='<%# Container.DataItemIndex %>'></asp:Button>
                             </ItemTemplate>
                             <HeaderStyle Width="100px" />
                           </asp:TemplateField>
@@ -456,8 +469,6 @@
           </asp:FormView>
         </div>
       </div>
-    </ContentTemplate>
-  </asp:UpdatePanel>
   <asp:ObjectDataSource
     ID="ODSpowTechnicalSpecifications"
     DataObjectTypeName="SIS.POW.powTechnicalSpecifications"
@@ -471,4 +482,42 @@
       <asp:QueryStringParameter DefaultValue="0" QueryStringField="TSID" Name="TSID" Type="Int32" />
     </SelectParameters>
   </asp:ObjectDataSource>
+    </ContentTemplate>
+  </asp:UpdatePanel>
+  <%--Modal Popup Start--%>
+  <asp:UpdatePanel runat="server">
+    <ContentTemplate>
+      <asp:Panel ID="pnl1" runat="server" Style="background-color: white; display: none; height: 226px" Width='400px'>
+        <asp:Panel ID="pnlHeader" runat="server" Style="width: 100%; height: 33px; padding-top: 8px; text-align: center; border-bottom: 1pt solid lightgray;">
+          <asp:Label ID="HeaderText" runat="server" Font-Size="16px" Font-Bold="true" Text='My Modal Text'></asp:Label>
+        </asp:Panel>
+        <asp:Panel ID="modalContent" runat="server" Style="width: 100%; height: 136px; padding: 4px;">
+          <asp:Label ID="L_EMailID" runat="server" Text="Update Supplier E-Mail IDs:" Font-Bold="true" Width="392px"></asp:Label>
+          <asp:TextBox ID="F_EMailIDs" runat="server" Width="386px" Height="100px" TextMode="MultiLine" onfocus="this.select();"></asp:TextBox>
+        </asp:Panel>
+        <asp:Panel ID="pnlFooter" runat="server" Style="width: 100%; height: 33px; padding-top: 8px; text-align: right; border-top: 1pt solid lightgray;">
+          <asp:Label ID="L_PrimaryKey" runat="server" Style="display: none;"></asp:Label>
+          <asp:Button ID="cmdOK" runat="server" Width="70px" Text="OK" Style="text-align: center; margin-right: 30px;" />
+          <asp:Button ID="cmdCancel" runat="server" Width="70px" Text="Cancle" Style="text-align: center; margin-right: 30px;" />
+        </asp:Panel>
+      </asp:Panel>
+      <asp:Button ID="dummy" runat="server" Style="display: none;" Text="show"></asp:Button>
+      <AJX:ModalPopupExtender
+        ID="mPopup"
+        BehaviorID="myMPE1"
+        TargetControlID="dummy"
+        BackgroundCssClass="modalBackground"
+        CancelControlID="cmdCancel"
+        OkControlID="cmdCancel"
+        PopupControlID="pnl1"
+        PopupDragHandleControlID="pnlHeader"
+        DropShadow="true"
+        runat="server">
+      </AJX:ModalPopupExtender>
+    </ContentTemplate>
+    <Triggers>
+      <asp:AsyncPostBackTrigger ControlID="cmdOK" EventName="Click" />
+    </Triggers>
+  </asp:UpdatePanel>
+  <%--Modal Popup End--%>
 </asp:Content>

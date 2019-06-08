@@ -124,8 +124,15 @@ Partial Class EF_powVendorEnquiries
     TBLpowVendorOffers.AddUrl &= "?TSID=" & TSID
     TBLpowVendorOffers.AddUrl &= "&EnquiryID=" & EnquiryID
   End Sub
-  <System.Web.Services.WebMethod()> _
-  <System.Web.Script.Services.ScriptMethod()> _
+  Protected Sub CmdAddNew_Clicked(ByVal sender As Object, ByVal e As System.EventArgs)
+    Dim TSID As Int32 = CType(FVpowVendorEnquiries.FindControl("F_TSID"), TextBox).Text
+    Dim EnquiryID As Int32 = CType(FVpowVendorEnquiries.FindControl("F_EnquiryID"), TextBox).Text
+    TBLpowVendorOffers.AddUrl &= "?TSID=" & TSID
+    TBLpowVendorOffers.AddUrl &= "&EnquiryID=" & EnquiryID
+    Response.Redirect(TBLpowVendorOffers.AddUrl)
+  End Sub
+  <System.Web.Services.WebMethod()>
+  <System.Web.Script.Services.ScriptMethod()>
   Public Shared Function SupplierIDCompletionList(ByVal prefixText As String, ByVal count As Integer, ByVal contextKey As String) As String()
     Return SIS.VR.vrBusinessPartner.SelectvrBusinessPartnerAutoCompleteList(prefixText, count, contextKey)
   End Function

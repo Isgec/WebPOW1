@@ -107,7 +107,7 @@ Partial Class AF_powEnquiries
     If oVar Is Nothing Then
       mRet = "1|" & aVal(0) & "|Record not found."
     Else
-      mRet = "0|" & aVal(0) & "|" & oVar.DisplayField
+      mRet = "0|" & aVal(0) & "|" & oVar.DisplayField & "|" & oVar.EMailID
     End If
     Return mRet
   End Function
@@ -144,7 +144,6 @@ Partial Class AF_powEnquiries
     If Request.QueryString("TSID") IsNot Nothing Then
       TSID = Request.QueryString("TSID")
     End If
-
   End Sub
   Private Forwarded As Boolean = False
   Private Sub TBLpowEnquiries_ForwardClicked(sender As Object, e As EventArgs) Handles TBLpowEnquiries.ForwardClicked

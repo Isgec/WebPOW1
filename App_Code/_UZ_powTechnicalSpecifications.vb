@@ -556,14 +556,6 @@ Namespace SIS.POW
           .Specification = IndentLine.t_nids
         End With
         oTSI = SIS.POW.powTSIndents.InsertData(oTSI)
-        '======Update CT======
-        'Not in Import, when TS Released
-        'Insert168(oTSI, Comp)
-        '=====================
-        '=====Update CT========
-        'Discuss NOT Required
-        'Insert169(newWFH, Comp)
-        '======================
         '6. Create WF PMDL Docs
         For Each doc As SIS.TDISG.tdisg003 In tmpDocs
           Dim oTSIDoc As New SIS.POW.powTSIndentDocuments
@@ -575,10 +567,6 @@ Namespace SIS.POW
             .DocumentRevision = doc.t_revi
           End With
           oTSIDoc = SIS.POW.powTSIndentDocuments.InsertData(oTSIDoc)
-          '=====Update CT========
-          'Not in Import, when TS Released
-          'Insert167(oTSIDoc, Comp)
-          '======================
           '7. Copy Handle To WFID
           Dim aFile As SIS.EDI.ediAFile = SIS.EDI.ediAFile.ediAFileGetByHandleIndex("DOCUMENTMASTERPDF_" & Comp, doc.t_docn & "_" & doc.t_revi)
           If aFile IsNot Nothing Then
@@ -586,6 +574,31 @@ Namespace SIS.POW
             aFile.t_indx = oTS.TSID
           End If
           SIS.EDI.ediAFile.InsertData(aFile, Comp)
+          '8.======Get Ref.Dwg for this document======
+          Dim Refs As List(Of SIS.DMISG.dmisg003) = SIS.DMISG.dmisg003.SelectRefDrawingList(doc.t_docn, doc.t_revi, Comp)
+          For Each ref As SIS.DMISG.dmisg003 In Refs
+            ref.t_drgn = IO.Path.GetFileNameWithoutExtension(ref.t_drgn)
+            oTSIDoc = SIS.POW.powTSIndentDocuments.powTSIndentDocumentsGetByID(oTSI.TSID, oTSI.SerialNo, ref.t_drgn)
+            If oTSIDoc Is Nothing Then
+              oTSIDoc = New SIS.POW.powTSIndentDocuments
+              With oTSIDoc
+                .TSID = oTSI.TSID
+                .SerialNo = oTSI.SerialNo
+                .DocNo = 0
+                .DocumentID = ref.t_drgn
+                .DocumentRevision = ref.t_drev
+              End With
+              oTSIDoc = SIS.POW.powTSIndentDocuments.InsertData(oTSIDoc)
+              '9. Copy Handle To WFID
+              aFile = SIS.EDI.ediAFile.ediAFileGetByHandleIndex("DOCUMENTMASTERPDF_" & Comp, ref.t_drgn & "_" & ref.t_drev)
+              If aFile IsNot Nothing Then
+                aFile.t_hndl = "J_PREORDER_TECHSPEC"
+                aFile.t_indx = oTS.TSID
+              End If
+              SIS.EDI.ediAFile.InsertData(aFile, Comp)
+            End If
+          Next
+          '=====End Ref Drawing==========
         Next
         '================================
         'Update Flag in ERP-LN with TSID 

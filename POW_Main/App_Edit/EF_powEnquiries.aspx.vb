@@ -181,7 +181,7 @@ Partial Class EF_powEnquiries
     If oVar Is Nothing Then
       mRet = "1|" & aVal(0) & "|Record not found."
     Else
-      mRet = "0|" & aVal(0) & "|" & oVar.DisplayField
+      mRet = "0|" & aVal(0) & "|" & oVar.DisplayField & "|" & oVar.EMailID
     End If
     Return mRet
   End Function

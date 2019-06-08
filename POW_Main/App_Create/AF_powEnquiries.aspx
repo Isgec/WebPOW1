@@ -165,6 +165,7 @@
                     ToolTip="Enter value for Supplier's E-Mail ID."
                     MaxLength="100"
                     Width="300px"
+                    ClientIDMode="Static"
                     runat="server" />
                   <asp:RequiredFieldValidator
                     ID="RFVSupplierEMailID"
