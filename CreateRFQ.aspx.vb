@@ -61,18 +61,12 @@ Partial Class CreateRFQ
       cntI += 1
     End While
     If oTS IsNot Nothing Then
-      Dim RedirectURL As String = ""
-      RedirectURL = "~/POW_Main/App_Edit/EF_powTechnicalSpecifications.aspx?TSID=" & oTS.TSID
       If SIS.SYS.Utilities.SessionManager.DoLogin(UserID) Then
+        Dim RedirectURL As String = "~/POW_Main/App_Edit/EF_powTechnicalSpecifications.aspx?TSID=" & oTS.TSID
         Response.Redirect(RedirectURL)
       End If
-      'ShowMsg("RFQ Workflow: " & oTS.TSID & " created." & IIf(Err <> "", "<br/> RFQ Not created for Indents: " & Err, ""))
-      'RedirectURL = "~/bslogin.aspx?zaq12wsx=1&UserID=" & UserID & " &TSID=" & oTS.TSID
-      'cmdRedirect.PostBackUrl = RedirectURL
-      'cmdRedirect.Text = "Click here to continue..."
-      'executeLink.InnerHtml = "<script type='text/javascript'>$get('cmdRedirect').click();</script>"
     Else
-        ShowMsg("RFQ Workflow NOT created.")
+      ShowMsg("RFQ Workflow NOT created.")
     End If
   End Sub
   Private Sub ShowMsg(ByVal str As String)

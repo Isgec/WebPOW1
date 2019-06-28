@@ -162,6 +162,20 @@ Namespace SIS.DMISG
       End Using
       Return Results
     End Function
+    Public Shared Function GetLatestRevisionNoOfDocument(ByVal t_docn As String, Optional ByVal Comp As String = "200") As String
+      Dim Results As String = ""
+      Using Con As SqlConnection = New SqlConnection(SIS.SYS.SQLDatabase.DBCommon.GetBaaNConnectionString())
+        Using Cmd As SqlCommand = Con.CreateCommand()
+          Cmd.CommandType = CommandType.Text
+          Cmd.CommandText = "select isnull(max(t_revn),'') from tdmisg003" & Comp & " where t_docn ='" & t_docn & "'"
+          Con.Open()
+          Results = Cmd.ExecuteScalar
+          _RecordCount = 1
+        End Using
+      End Using
+      Return Results
+    End Function
+
     Public Shared Function dmisg003SelectCount(ByVal SearchState As Boolean, ByVal SearchText As String) As Integer
       Return _RecordCount
     End Function

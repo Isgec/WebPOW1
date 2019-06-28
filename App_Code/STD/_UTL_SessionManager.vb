@@ -71,8 +71,6 @@ Namespace SIS.SYS.Utilities
       End Try
       Return mRet
     End Function
-
-
     Public Shared Function GetComputerName(ByVal clientIP As String) As String
       Dim he As IPHostEntry = Nothing
       Try

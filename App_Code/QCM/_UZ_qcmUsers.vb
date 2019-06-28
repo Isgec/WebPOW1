@@ -52,11 +52,12 @@ Namespace SIS.QCM
       Return True
     End Function
     Public Shared Function ValidatePassword(ByVal owUsr As SIS.QCM.qcmUsers) As SIS.QCM.qcmUsers
-      If owUsr.PW = "" Then
-        owUsr.PW = IO.Path.GetRandomFileName()
-        SIS.QCM.qcmUsers.ChangePassword(owUsr.UserName, owUsr.PW)
-        SIS.QCM.qcmUsers.UpdateData(owUsr)
-      End If
+      'Next Line is commented to Reset Password to same as login id
+      'If owUsr.PW = "" Then
+      owUsr.PW = owUsr.UserName  ' IO.Path.GetRandomFileName()
+      SIS.QCM.qcmUsers.ChangePassword(owUsr.UserName, owUsr.PW)
+      SIS.QCM.qcmUsers.UpdateData(owUsr)
+      'End If
       Return owUsr
     End Function
     Public Shared Function ChangePassword(ByVal UserName As String, ByVal NewPassword As String) As Boolean

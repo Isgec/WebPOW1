@@ -558,44 +558,60 @@ Namespace SIS.POW
         oTSI = SIS.POW.powTSIndents.InsertData(oTSI)
         '6. Create WF PMDL Docs
         For Each doc As SIS.TDISG.tdisg003 In tmpDocs
-          Dim oTSIDoc As New SIS.POW.powTSIndentDocuments
-          With oTSIDoc
-            .TSID = oTSI.TSID
-            .SerialNo = oTSI.SerialNo
-            .DocNo = 0
-            .DocumentID = doc.t_docn
-            .DocumentRevision = doc.t_revi
-          End With
-          oTSIDoc = SIS.POW.powTSIndentDocuments.InsertData(oTSIDoc)
-          '7. Copy Handle To WFID
-          Dim aFile As SIS.EDI.ediAFile = SIS.EDI.ediAFile.ediAFileGetByHandleIndex("DOCUMENTMASTERPDF_" & Comp, doc.t_docn & "_" & doc.t_revi)
-          If aFile IsNot Nothing Then
-            aFile.t_hndl = "J_PREORDER_TECHSPEC"
-            aFile.t_indx = oTS.TSID
+          Dim oTSIDoc As SIS.POW.powTSIndentDocuments = Nothing
+          Dim aFile As SIS.EDI.ediAFile = Nothing
+          oTSIDoc = SIS.POW.powTSIndentDocuments.powTSIndentDocumentsGetByDocumentID(oTSI.TSID, oTSI.SerialNo, doc.t_docn)
+          If oTSIDoc Is Nothing Then
+            oTSIDoc = New SIS.POW.powTSIndentDocuments
+            With oTSIDoc
+              .TSID = oTSI.TSID
+              .SerialNo = oTSI.SerialNo
+              .DocNo = 0
+              .DocumentID = doc.t_docn
+              .DocumentRevision = doc.t_revi
+            End With
+            oTSIDoc = SIS.POW.powTSIndentDocuments.InsertData(oTSIDoc)
+            '7. Copy Handle To WFID
+            aFile = SIS.EDI.ediAFile.ediAFileGetByHandleIndex("DOCUMENTMASTERPDF_" & Comp, doc.t_docn & "_" & doc.t_revi)
+            If aFile IsNot Nothing Then
+              aFile.t_hndl = "J_PREORDER_TECHSPEC"
+              aFile.t_indx = oTS.TSID
+              If Convert.ToBoolean(ConfigurationManager.AppSettings("JoomlaLive")) Then
+                SIS.EDI.ediAFile.InsertData(aFile, Comp)
+              End If
+            End If
           End If
-          SIS.EDI.ediAFile.InsertData(aFile, Comp)
           '8.======Get Ref.Dwg for this document======
           Dim Refs As List(Of SIS.DMISG.dmisg003) = SIS.DMISG.dmisg003.SelectRefDrawingList(doc.t_docn, doc.t_revi, Comp)
           For Each ref As SIS.DMISG.dmisg003 In Refs
             ref.t_drgn = IO.Path.GetFileNameWithoutExtension(ref.t_drgn)
-            oTSIDoc = SIS.POW.powTSIndentDocuments.powTSIndentDocumentsGetByID(oTSI.TSID, oTSI.SerialNo, ref.t_drgn)
-            If oTSIDoc Is Nothing Then
-              oTSIDoc = New SIS.POW.powTSIndentDocuments
-              With oTSIDoc
-                .TSID = oTSI.TSID
-                .SerialNo = oTSI.SerialNo
-                .DocNo = 0
-                .DocumentID = ref.t_drgn
-                .DocumentRevision = ref.t_drev
-              End With
-              oTSIDoc = SIS.POW.powTSIndentDocuments.InsertData(oTSIDoc)
-              '9. Copy Handle To WFID
-              aFile = SIS.EDI.ediAFile.ediAFileGetByHandleIndex("DOCUMENTMASTERPDF_" & Comp, ref.t_drgn & "_" & ref.t_drev)
-              If aFile IsNot Nothing Then
-                aFile.t_hndl = "J_PREORDER_TECHSPEC"
-                aFile.t_indx = oTS.TSID
+            If ref.t_drev = "" Then
+              ref.t_drev = SIS.DMISG.dmisg003.GetLatestRevisionNoOfDocument(ref.t_drgn)
+            End If
+            If ref.t_drev <> "" Then
+              'Ref. Drawing is NOT yet Released
+              'Do NOT Create Meta Data
+              oTSIDoc = SIS.POW.powTSIndentDocuments.powTSIndentDocumentsGetByDocumentID(oTSI.TSID, oTSI.SerialNo, ref.t_drgn)
+              If oTSIDoc Is Nothing Then
+                oTSIDoc = New SIS.POW.powTSIndentDocuments
+                With oTSIDoc
+                  .TSID = oTSI.TSID
+                  .SerialNo = oTSI.SerialNo
+                  .DocNo = 0
+                  .DocumentID = ref.t_drgn
+                  .DocumentRevision = ref.t_drev
+                End With
+                oTSIDoc = SIS.POW.powTSIndentDocuments.InsertData(oTSIDoc)
+                '9. Copy Handle To WFID
+                aFile = SIS.EDI.ediAFile.ediAFileGetByHandleIndex("DOCUMENTMASTERPDF_" & Comp, ref.t_drgn & "_" & ref.t_drev)
+                If aFile IsNot Nothing Then
+                  aFile.t_hndl = "J_PREORDER_TECHSPEC"
+                  aFile.t_indx = oTS.TSID
+                  If Convert.ToBoolean(ConfigurationManager.AppSettings("JoomlaLive")) Then
+                    SIS.EDI.ediAFile.InsertData(aFile, Comp)
+                  End If
+                End If
               End If
-              SIS.EDI.ediAFile.InsertData(aFile, Comp)
             End If
           Next
           '=====End Ref Drawing==========

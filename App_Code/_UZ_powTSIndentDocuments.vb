@@ -129,5 +129,25 @@ Namespace SIS.POW
       End With
       Return sender
     End Function
+    Public Shared Function powTSIndentDocumentsGetByDocumentID(ByVal TSID As Int32, ByVal SerialNo As Int32, ByVal DocumentID As String) As SIS.POW.powTSIndentDocuments
+      Dim Results As SIS.POW.powTSIndentDocuments = Nothing
+      Using Con As SqlConnection = New SqlConnection(SIS.SYS.SQLDatabase.DBCommon.GetConnectionString())
+        Using Cmd As SqlCommand = Con.CreateCommand()
+          Cmd.CommandType = CommandType.StoredProcedure
+          Cmd.CommandText = "sppow_LG_TSIndentDocumentsSelectByDocumentID"
+          SIS.SYS.SQLDatabase.DBCommon.AddDBParameter(Cmd, "@TSID", SqlDbType.Int, TSID.ToString.Length, TSID)
+          SIS.SYS.SQLDatabase.DBCommon.AddDBParameter(Cmd, "@SerialNo", SqlDbType.Int, SerialNo.ToString.Length, SerialNo)
+          SIS.SYS.SQLDatabase.DBCommon.AddDBParameter(Cmd, "@DocumentID", SqlDbType.NVarChar, DocumentID.Length, DocumentID)
+          SIS.SYS.SQLDatabase.DBCommon.AddDBParameter(Cmd, "@LoginID", SqlDbType.NVarChar, 9, HttpContext.Current.Session("LoginID"))
+          Con.Open()
+          Dim Reader As SqlDataReader = Cmd.ExecuteReader()
+          If Reader.Read() Then
+            Results = New SIS.POW.powTSIndentDocuments(Reader)
+          End If
+          Reader.Close()
+        End Using
+      End Using
+      Return Results
+    End Function
   End Class
 End Namespace

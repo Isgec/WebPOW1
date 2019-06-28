@@ -20,6 +20,13 @@ Partial Class lgMasterPage
     End Set
   End Property
   Protected Sub Page_Load(ByVal sender As Object, ByVal e As System.EventArgs) Handles Me.Load
+    Try
+      If HttpContext.Current.Session("LoginID") Is Nothing Then
+        HttpContext.Current.Session("LoginID") = ""
+      End If
+    Catch ex As Exception
+
+    End Try
     If Not SIS.SYS.Utilities.ValidateURL.Validate(Request.AppRelativeCurrentExecutionFilePath) Then
       Response.Redirect("~/Login.aspx")
     End If
@@ -298,7 +305,6 @@ Partial Class lgMasterPage
   Public Sub LoggedOut(ByVal sender As Object, ByVal e As System.EventArgs)
     Authenticated = False
     SIS.SYS.Utilities.SessionManager.DestroySessionEnvironement()
-    'Response.Redirect("~/bsLogin.aspx")
   End Sub
 
   Private Sub lgMasterPage_PreRender(sender As Object, e As EventArgs) Handles Me.PreRender

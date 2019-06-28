@@ -36,62 +36,46 @@ Partial Class bsLogin
     Response.Redirect(RedirectURL)
   End Sub
   Private Sub Login0_PreRender(sender As Object, e As EventArgs) Handles Login0.PreRender
-    If Not Page.User.Identity.IsAuthenticated Then
-      If Not Page.IsPostBack Then
-        If Request.QueryString("EnqKey") IsNot Nothing Then
-          'Called From Vendor E-Mail Link
-          Dim Key As String = Request.QueryString("EnqKey")
-          Dim enq As SIS.POW.powEnquiries = SIS.POW.powEnquiries.GetByEnquiryKey(Key)
-          If enq IsNot Nothing Then
-            UserID = enq.SupplierLoginID
-            If SIS.SYS.Utilities.SessionManager.DoLogin(UserID) Then
-              SIS.SYS.Utilities.ApplicationSpacific.GenerateSupplierAuthorization(UserID)
-              RedirectURL = "~/POW_Main/App_Edit/EF_powVendorEnquiries.aspx?TSID=" & enq.TSID & "&EnquiryID=" & enq.EnquiryID
-              Response.Redirect(RedirectURL)
-            End If
-            'Dim pw As String = SIS.SYS.Utilities.SessionManager.GetPassword(UserID)
-            'CType(Login0.FindControl("UserName"), TextBox).Text = UserID
-            'msg.InnerHtml = "<script type='text/javascript'>$get('Password').value='" & pw & "';$get('UserName').value='" & UserID & "';$get('cmdLogin').click();</script>"
-            'CType(Login0.FindControl("pnlLogin"), Panel).Attributes.Add("style", "display:none;")
-          End If
-        ElseIf Request.QueryString("zaq12wsx") IsNot Nothing Then
-          'Called From RFQ Generation, After Indent selection from ERP
-          UserID = Request.QueryString("UserID")
-          Dim TSID As String = Request.QueryString("TSID")
-          HttpContext.Current.Session("BrowserWidth") = 1001
-          If SIS.SYS.Utilities.SessionManager.DoLogin(UserID) Then
-            RedirectURL = "~/POW_Main/App_Edit/EF_powTechnicalSpecifications.aspx?TSID=" & TSID
-            Response.Redirect(RedirectURL)
-          End If
-          'Dim pw As String = SIS.SYS.Utilities.SessionManager.GetPassword(UserID)
-          'RedirectURL = "~/POW_Main/App_Edit/EF_powTechnicalSpecifications.aspx?TSID=" & TSID
-          'CType(Login0.FindControl("UserName"), TextBox).Text = UserID
-          'msg.InnerHtml = "<script type='text/javascript'>$get('Password').value='" & pw & "';$get('UserName').value='" & UserID & "';$get('cmdLogin').click();</script>"
-          'CType(Login0.FindControl("pnlLogin"), Panel).Attributes.Add("style", "display:none;")
-        ElseIf Request.QueryString("UserID") IsNot Nothing Then
-          'Called From ERP Menu
-          UserID = Request.QueryString("UserID")
-          HttpContext.Current.Session("BrowserWidth") = 1001
-          If SIS.SYS.Utilities.SessionManager.DoLogin(UserID) Then
-            RedirectURL = "~/POW_Main/App_Forms/GF_powTechnicalSpecifications.aspx"
-            Response.Redirect(RedirectURL)
-          End If
-          'Dim pw As String = SIS.SYS.Utilities.SessionManager.GetPassword(UserID)
-          'RedirectURL = "~/POW_Main/App_Forms/GF_powTechnicalSpecifications.aspx"
-          'CType(Login0.FindControl("UserName"), TextBox).Text = UserID
-          'msg.InnerHtml = "<script type='text/javascript'>$get('Password').value='" & pw & "';$get('UserName').value='" & UserID & "';$get('cmdLogin').click();</script>"
-          'CType(Login0.FindControl("pnlLogin"), Panel).Attributes.Add("style", "display:none;")
+    Try
+      SIS.SYS.Utilities.SessionManager.DestroySessionEnvironement()
+    Catch ex As Exception
+    End Try
+    '1. Called From Vendor E-Mail Link
+    If Request.QueryString("EnqKey") IsNot Nothing Then
+      Dim Key As String = Request.QueryString("EnqKey")
+      Dim enq As SIS.POW.powEnquiries = SIS.POW.powEnquiries.GetByEnquiryKey(Key)
+      If enq IsNot Nothing Then
+        UserID = enq.SupplierLoginID
+        If SIS.SYS.Utilities.SessionManager.DoLogin(UserID) Then
+          SIS.SYS.Utilities.ApplicationSpacific.GenerateSupplierAuthorization(UserID)
+          RedirectURL = "~/POW_Main/App_Edit/EF_powVendorEnquiries.aspx?TSID=" & enq.TSID & "&EnquiryID=" & enq.EnquiryID
+          Response.Redirect(RedirectURL)
         End If
       End If
     End If
-    'First Time Mobile App Users are handled in global.aspx 
-    'Second Time in same loop From Here as global file is not executed
-    If Request.Item("LoginID") IsNot Nothing Then
-      'Called From Mobile App
-      UserID = Request.QueryString("LoginID")
-      Dim LastURL As String = HttpContext.Current.Request.UrlReferrer.ToString
+    '2. Called From RFQ Generation, After Indent selection from ERP
+    If Request.QueryString("zaq12wsx") IsNot Nothing Then
+      UserID = Request.QueryString("UserID")
+      Dim TSID As String = Request.QueryString("TSID")
+      HttpContext.Current.Session("BrowserWidth") = 1001
       If SIS.SYS.Utilities.SessionManager.DoLogin(UserID) Then
-        HttpContext.Current.Session("LastURL") = LastURL
+        RedirectURL = "~/POW_Main/App_Edit/EF_powTechnicalSpecifications.aspx?TSID=" & TSID
+        Response.Redirect(RedirectURL)
+      End If
+    End If
+    '3. Called From ERP Menu
+    If Request.QueryString("UserID") IsNot Nothing Then
+      UserID = Request.QueryString("UserID")
+      HttpContext.Current.Session("BrowserWidth") = 1001
+      If SIS.SYS.Utilities.SessionManager.DoLogin(UserID) Then
+        RedirectURL = "~/POW_Main/App_Forms/GF_powTechnicalSpecifications.aspx"
+        Response.Redirect(RedirectURL)
+      End If
+    End If
+    '4. From Mobile App
+    If Request.QueryString("LoginID") IsNot Nothing Then
+      UserID = Request.QueryString("LoginID")
+      If SIS.SYS.Utilities.SessionManager.DoLogin(UserID) Then
         HttpContext.Current.Session("BrowserWidth") = 1001
         RedirectURL = "~/POW_Main/App_Forms/GF_powTechnicalSpecifications.aspx"
         Response.Redirect(RedirectURL)
