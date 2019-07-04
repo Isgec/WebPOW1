@@ -179,7 +179,7 @@ Partial Class EF_powEnquiries
     Dim SupplierID As String = CType(aVal(1), String)
     Dim oVar As SIS.VR.vrBusinessPartner = SIS.VR.vrBusinessPartner.vrBusinessPartnerGetByID(SupplierID)
     If oVar Is Nothing Then
-      mRet = "1|" & aVal(0) & "|Record not found."
+      mRet = "1|" & aVal(0) & "|Supplier not found in Joomla & ERP."
     Else
       mRet = "0|" & aVal(0) & "|" & oVar.DisplayField & "|" & oVar.EMailID
     End If

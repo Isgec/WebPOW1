@@ -167,7 +167,7 @@
             <a class="nav-link" href="#"><asp:LinkButton ID="cmdChangePassword" runat="server" CssClass="btn btn-sm btn-outline-warning" PostBackUrl="~/ChangePassword.aspx" Text="Change Password" /></a>
           </li>
           <li class="nav-item">
-            <a class="nav-link" href="#"><asp:LoginStatus ID="LoginStatus1" runat="server" CssClass="btn btn-sm btn-outline-primary" OnLoggedOut="LoggedOut" LoginText="Sign In" LogoutAction="Redirect" LogoutPageUrl="~/bsLogin.aspx" LogoutText="  Sign Out  " /></a>
+            <a class="nav-link" href="#"><asp:LoginStatus ID="LoginStatus1" runat="server" CssClass="btn btn-sm btn-outline-primary" LoginText="Sign In" LogoutAction="Redirect" LogoutPageUrl="~/bsLogin.aspx" LogoutText="  Sign Out  " /></a>
           </li>
         </ul>
       </div>

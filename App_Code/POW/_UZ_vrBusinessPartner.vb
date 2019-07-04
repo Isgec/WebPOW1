@@ -5,6 +5,49 @@ Imports System.Data.SqlClient
 Imports System.ComponentModel
 Namespace SIS.VR
   Partial Public Class vrBusinessPartner
+    Public Shared Function GetBPFromERP(ByVal BPID As String, Optional ByVal Comp As String = "200") As SIS.VR.vrBusinessPartner
+      Dim Results As SIS.VR.vrBusinessPartner = Nothing
+      Dim Sql As String = ""
+      Sql &= "select                                                     "
+      Sql &= "  suh.t_bpid as BPID,                                      "
+      Sql &= "  suh.t_nama as BPName,                                    "
+      Sql &= "  adh.t_ln01 as Address1Line,                              "
+      Sql &= "  adh.t_ln02 as Address2Line,                                    "
+      Sql &= "  adh.t_ln03 as Address3,                                        "
+      Sql &= "  adh.t_ln04 as Address4,                                        "
+      Sql &= "  adh.t_ln05 as City,                                            "
+      Sql &= "  adh.t_ln06 as State,                                           "
+      Sql &= "  adh.t_pstc as Zip,                                             "
+      Sql &= "  adh.t_ccty as Country,                                         "
+      Sql &= "  cnh.t_fuln as ContactPerson,                                   "
+      Sql &= "  cnh.t_telp as ContactNo,                                       "
+      Sql &= "  cnh.t_info as EMailID                                          "
+      Sql &= "  from ttccom100" & Comp & " as suh                                       "
+      Sql &= "  left outer join ttccom130" & Comp & " as adh on suh.t_cadr = adh.t_cadr "
+      Sql &= "  left outer join ttccom140" & Comp & " as cnh on suh.t_ccnt = cnh.t_ccnt "
+      Sql &= "  where suh.t_bpid ='" & BPID & "'"
+      Using Con As SqlConnection = New SqlConnection(SIS.SYS.SQLDatabase.DBCommon.GetBaaNConnectionString())
+        Using Cmd As SqlCommand = Con.CreateCommand()
+          Cmd.CommandType = CommandType.Text
+          Cmd.CommandText = Sql
+          Con.Open()
+          Dim Reader As SqlDataReader = Cmd.ExecuteReader()
+          If Reader.Read() Then
+            Results = New SIS.VR.vrBusinessPartner(Reader)
+          End If
+          Reader.Close()
+        End Using
+      End Using
+      If Results IsNot Nothing Then
+        If Comp <> "200" Then Results.BPID = "S" & Comp & Right(Results.BPID, 5)
+        Try
+          Results = SIS.VR.vrBusinessPartner.InsertData(Results)
+        Catch ex As Exception
+        End Try
+      End If
+      Return Results
+    End Function
+
     Public Function GetColor() As System.Drawing.Color
       Dim mRet As System.Drawing.Color = Drawing.Color.Blue
       Return mRet
@@ -50,18 +93,18 @@ Namespace SIS.VR
       Return _Result
     End Function
     Public Shared Function UZ_vrBusinessPartnerDelete(ByVal Record As SIS.VR.vrBusinessPartner) As Integer
-      Dim _Result as Integer = vrBusinessPartnerDelete(Record)
+      Dim _Result As Integer = vrBusinessPartnerDelete(Record)
       Return _Result
     End Function
     Public Shared Function SetDefaultValues(ByVal sender As System.Web.UI.WebControls.FormView, ByVal e As System.EventArgs) As System.Web.UI.WebControls.FormView
       With sender
         Try
-        CType(.FindControl("F_BPID"), TextBox).Text = ""
-        CType(.FindControl("F_BPName"), TextBox).Text = ""
-        CType(.FindControl("F_Address1Line"), TextBox).Text = ""
-        CType(.FindControl("F_Address2Line"), TextBox).Text = ""
-        CType(.FindControl("F_City"), TextBox).Text = ""
-        CType(.FindControl("F_EMailID"), TextBox).Text = ""
+          CType(.FindControl("F_BPID"), TextBox).Text = ""
+          CType(.FindControl("F_BPName"), TextBox).Text = ""
+          CType(.FindControl("F_Address1Line"), TextBox).Text = ""
+          CType(.FindControl("F_Address2Line"), TextBox).Text = ""
+          CType(.FindControl("F_City"), TextBox).Text = ""
+          CType(.FindControl("F_EMailID"), TextBox).Text = ""
         Catch ex As Exception
         End Try
       End With

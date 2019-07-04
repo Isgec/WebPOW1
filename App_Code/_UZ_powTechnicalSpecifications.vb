@@ -80,9 +80,12 @@ Namespace SIS.POW
     End Property
     Public ReadOnly Property Deleteable() As Boolean
       Get
-        Dim mRet As Boolean = True
+        Dim mRet As Boolean = False
         Try
-          mRet = GetDeleteable()
+          Select Case StatusID
+            Case enumTSStates.TechnicalSpecificationReleased, enumTSStates.Created
+              mRet = True
+          End Select
         Catch ex As Exception
         End Try
         Return mRet
@@ -118,15 +121,7 @@ Namespace SIS.POW
     End Function
     Public ReadOnly Property DeleteWFVisible() As Boolean
       Get
-        Dim mRet As Boolean = False
-        Try
-          Select Case StatusID
-            Case enumTSStates.TechnicalSpecificationReleased, enumTSStates.Created
-              mRet = True
-          End Select
-        Catch ex As Exception
-        End Try
-        Return mRet
+        Return Deleteable
       End Get
     End Property
     Public ReadOnly Property DeleteWFEnable() As Boolean

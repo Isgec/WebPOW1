@@ -257,10 +257,148 @@ Namespace SIS.POW
           Cmd.ExecuteNonQuery()
         End Using
       End Using
-      Return NextNo
+      Return "REC" & NextNo.PadLeft(6, "0")
+    End Function
+    Public Shared Function CompleteWF(ByVal TSID As Int32, ByVal EnquiryID As Int32, ByVal RecordID As Int32) As SIS.POW.powOffers
+      Dim tmpOffer As SIS.POW.powOffers = powOffersGetByID(TSID, EnquiryID, RecordID)
+      Dim tmpERPReceipt As SIS.PAK.pakERPRecH = Nothing
+      Dim ERPReceiptToRevise As SIS.PAK.pakERPRecH = Nothing
+      Dim OfferToRevise As SIS.POW.powOffers = Nothing
+      Dim tmpAtchs As New List(Of SIS.EDI.ediAFile)
+      Dim I As Integer = 1
+      Dim ReceiptID As String = ""
+      Dim ReceiptRevision As String = ""
+      Dim action As String = ""
+      '==========================
+      'A. Identify Action to Perform
+      '==========================
+      If tmpOffer.ReceiptID <> "" AndAlso tmpOffer.ReceiptRevision <> "" Then
+        ReceiptID = tmpOffer.ReceiptID
+        ReceiptRevision = tmpOffer.ReceiptRevision
+        action = "UPD"
+      Else
+        'Check to Create New or Revise an Existing Receipt in ERP
+        Dim tmpOffers As List(Of SIS.POW.powOffers) = powOffersSelectList(0, 9999, "", False, "", EnquiryID, TSID)
+        For Each x As SIS.POW.powOffers In tmpOffers
+          If x.ReceiptID <> "" AndAlso x.ReceiptRevision <> "" Then
+            ERPReceiptToRevise = SIS.PAK.pakERPRecH.pakERPRecHGetByID(tmpOffer.ReceiptID, tmpOffer.ReceiptRevision)
+            If ERPReceiptToRevise Is Nothing Then Continue For
+            Select Case ERPReceiptToRevise.t_stat
+              Case enumERPStates.CommentSubmitted, enumERPStates.TransmittalIssued
+                OfferToRevise = x
+                action = "REVISE"
+                ReceiptID = OfferToRevise.ReceiptID
+                ReceiptRevision = (Convert.ToInt32(OfferToRevise.ReceiptRevision) + 1).ToString.PadLeft(2, "0")
+              Case enumERPStates.Closed, enumERPStates.Superseded
+                action = "NEW"
+                ReceiptID = GetNextRecNo()
+                ReceiptRevision = "00"
+              Case enumERPStates.TechnicallyCleared
+                Throw New Exception("Receipt: " & x.ReceiptID & "_" & x.ReceiptRevision & " is already TECHNICALLY CLEARED.")
+              Case enumERPStates.Submitted, enumERPStates.UnderEvaluation, enumERPStates.DocumentLinked
+                'Receipt is already created so DTE action can revise only
+                'Return from DTE action and notify user
+                Throw New Exception("Receipt: " & x.ReceiptID & "_" & x.ReceiptRevision & " is not COMMENT SUBMITTED, cannot revise.")
+            End Select
+            Exit For
+          End If
+        Next
+      End If
+      '=========================
+      'B. Perform Identified Action
+      '=========================
+      Select Case action
+        Case "UPD"
+          'Do Nothing
+          'We may write to check attachment and physical file
+          Return tmpOffer
+        Case "REVISE"
+          '1. Superseded Receipt in ERP
+          With ERPReceiptToRevise
+            .t_stat = enumERPStates.Superseded
+          End With
+          ERPReceiptToRevise = SIS.PAK.pakERPRecH.UpdateData(ERPReceiptToRevise)
+          '2. Superseded Offer in WEB
+          With OfferToRevise
+            .StatusID = enumOfferStates.Superseded
+          End With
+          OfferToRevise = SIS.POW.powOffers.UpdateData(OfferToRevise)
+          '3. Create Revised Receipt in ERP
+          With tmpOffer
+            .ReceiptID = ReceiptID
+            .ReceiptRevision = ReceiptRevision
+            .StatusID = enumOfferStates.UnderEvaluation
+            .DistributedOn = Now
+          End With
+          tmpERPReceipt = SIS.POW.powOffers.GetERPRecH(tmpOffer)
+          tmpERPReceipt = SIS.PAK.pakERPRecH.InsertData(tmpERPReceipt)
+          '4. Create ERP Receipt Documents
+          tmpAtchs = SIS.EDI.ediAFile.ediAFileSelectList(0, 999, "", False, "", tmpOffer.AthHandle, tmpOffer.AthIndex)
+          I = 1
+          For Each atch As SIS.EDI.ediAFile In tmpAtchs
+            Dim ERPRecD As SIS.PAK.pakERPRecD = SIS.POW.powOffers.GetERPRecD(tmpOffer, atch, I)
+            ERPRecD = SIS.PAK.pakERPRecD.InsertData(ERPRecD)
+            Try
+              SIS.EDI.ediAFile.ediAFileCopy(tmpOffer.AthHandle, tmpOffer.AthIndex, ERPRecD.AthHandle, ERPRecD.AthIndex)
+            Catch ex As Exception
+            End Try
+            I += 1
+          Next
+          '5. Update Offer in WEB
+          tmpOffer = SIS.POW.powOffers.UpdateData(tmpOffer)
+        Case "NEW"
+          '3. Create Revised Receipt in ERP
+          With tmpOffer
+            .ReceiptID = ReceiptID
+            .ReceiptRevision = ReceiptRevision
+            .StatusID = enumOfferStates.UnderEvaluation
+            .DistributedOn = Now
+          End With
+          tmpERPReceipt = SIS.POW.powOffers.GetERPRecH(tmpOffer)
+          tmpERPReceipt = SIS.PAK.pakERPRecH.InsertData(tmpERPReceipt)
+          '4. Create ERP Receipt Documents
+          tmpAtchs = SIS.EDI.ediAFile.ediAFileSelectList(0, 999, "", False, "", tmpOffer.AthHandle, tmpOffer.AthIndex)
+          I = 1
+          For Each atch As SIS.EDI.ediAFile In tmpAtchs
+            Dim ERPRecD As SIS.PAK.pakERPRecD = SIS.POW.powOffers.GetERPRecD(tmpOffer, atch, I)
+            ERPRecD = SIS.PAK.pakERPRecD.InsertData(ERPRecD)
+            Try
+              SIS.EDI.ediAFile.ediAFileCopy(tmpOffer.AthHandle, tmpOffer.AthIndex, ERPRecD.AthHandle, ERPRecD.AthIndex)
+            Catch ex As Exception
+            End Try
+            I += 1
+          Next
+          '5. Update Offer in WEB
+          tmpOffer = SIS.POW.powOffers.UpdateData(tmpOffer)
+
+      End Select
+      '=================
+      'C. Distribute in ERP
+      '=================
+      Try
+        DistributeInERP(tmpOffer.ReceiptID, tmpOffer.ReceiptRevision)
+      Catch ex As Exception
+      End Try
+      '=======================
+      'D. Send TC Alert E-Mail
+      '=======================
+      Try
+        SIS.POW.Alerts.UnderEvaluation(tmpOffer)
+      Catch ex As Exception
+      End Try
+      '====================
+      'E. Update CT
+      '====================
+      If CType(ConfigurationManager.AppSettings("UpdateCT"), Boolean) Then
+        Dim Indents As List(Of SIS.POW.powTSIndents) = SIS.POW.powTSIndents.UZ_powTSIndentsSelectList(0, 999, "", False, "", tmpOffer.TSID)
+        Dim Comp As String = SIS.RFQ.rfqGeneral.GetERPCompanyByIndentNo(Indents(0).IndentNo)
+        Dim enq As SIS.POW.powEnquiries = tmpOffer.FK_POW_Offers_EnquiryID
+        CT_Update_UnderEvaluation(tmpOffer, Comp)
+      End If
+      Return tmpOffer
     End Function
 
-    Public Shared Function CompleteWF(ByVal TSID As Int32, ByVal EnquiryID As Int32, ByVal RecordID As Int32) As SIS.POW.powOffers
+    Public Shared Function CompleteWF_delete(ByVal TSID As Int32, ByVal EnquiryID As Int32, ByVal RecordID As Int32) As SIS.POW.powOffers
       Dim IsERPReceiptNoFound As Boolean = False
       Dim IsReceiptExistInERP As Boolean = False
       Dim tmpOfr As SIS.POW.powOffers = powOffersGetByID(TSID, EnquiryID, RecordID)
@@ -417,6 +555,7 @@ Namespace SIS.POW
         .t_cprj = TopIndent.ProjectID
         .t_item = TopIndent.LotItem
         .t_bpid = tmpOfr.FK_POW_Offers_EnquiryID.SupplierID
+        .t_nama = tmpOfr.FK_POW_Offers_EnquiryID.SupplierName
         .t_stat = 1 'submitted
         .t_user = tmpOfr.FK_POW_Offers_EnquiryID.CreatedBy
         .t_date = Now.ToString("dd/MM/yyyy")

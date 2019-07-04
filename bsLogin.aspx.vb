@@ -36,10 +36,6 @@ Partial Class bsLogin
     Response.Redirect(RedirectURL)
   End Sub
   Private Sub Login0_PreRender(sender As Object, e As EventArgs) Handles Login0.PreRender
-    Try
-      SIS.SYS.Utilities.SessionManager.DestroySessionEnvironement()
-    Catch ex As Exception
-    End Try
     '1. Called From Vendor E-Mail Link
     If Request.QueryString("EnqKey") IsNot Nothing Then
       Dim Key As String = Request.QueryString("EnqKey")

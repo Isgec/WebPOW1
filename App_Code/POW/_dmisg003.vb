@@ -167,7 +167,7 @@ Namespace SIS.DMISG
       Using Con As SqlConnection = New SqlConnection(SIS.SYS.SQLDatabase.DBCommon.GetBaaNConnectionString())
         Using Cmd As SqlCommand = Con.CreateCommand()
           Cmd.CommandType = CommandType.Text
-          Cmd.CommandText = "select isnull(max(t_revn),'') from tdmisg003" & Comp & " where t_docn ='" & t_docn & "'"
+          Cmd.CommandText = "select isnull(max(t_revn),'') from tdmisg001" & Comp & " where t_docn ='" & t_docn & "'"
           Con.Open()
           Results = Cmd.ExecuteScalar
           _RecordCount = 1

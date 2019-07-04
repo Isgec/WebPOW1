@@ -167,7 +167,7 @@ Namespace SIS.VR
         Using Cmd As SqlCommand = Con.CreateCommand()
           Cmd.CommandType = CommandType.StoredProcedure
           Cmd.CommandText = "spvrBusinessPartnerSelectByID"
-          SIS.SYS.SQLDatabase.DBCommon.AddDBParameter(Cmd, "@BPID",SqlDbType.NVarChar,BPID.ToString.Length, BPID)
+          SIS.SYS.SQLDatabase.DBCommon.AddDBParameter(Cmd, "@BPID", SqlDbType.NVarChar, BPID.ToString.Length, BPID)
           SIS.SYS.SQLDatabase.DBCommon.AddDBParameter(Cmd, "@LoginID", SqlDbType.NvarChar, 9, HttpContext.Current.Session("LoginID"))
           Con.Open()
           Dim Reader As SqlDataReader = Cmd.ExecuteReader()
@@ -177,6 +177,12 @@ Namespace SIS.VR
           Reader.Close()
         End Using
       End Using
+      If Results Is Nothing Then
+        Try
+          Results = SIS.VR.vrBusinessPartner.GetBPFromERP(BPID)
+        Catch ex As Exception
+        End Try
+      End If
       Return Results
     End Function
     <DataObjectMethod(DataObjectMethodType.Select)> _

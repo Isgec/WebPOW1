@@ -36,3 +36,13 @@ Public Enum enumTSTypes
   Package = 2
   SelfEngineered = 3
 End Enum
+Public Enum enumERPStates
+  Submitted = 1
+  DocumentLinked = 2
+  UnderEvaluation = 3
+  CommentSubmitted = 4
+  TechnicallyCleared = 5
+  TransmittalIssued = 6
+  Superseded = 7
+  Closed = 8
+End Enum

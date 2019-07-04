@@ -1,6 +1,7 @@
 Imports System.Web.Services
 Imports System.IO
 Imports System.Xml
+Imports System.Web.Security
 Partial Class lgMasterPage
   Inherits System.Web.UI.MasterPage
   Public Property Authenticated As Boolean
@@ -25,10 +26,9 @@ Partial Class lgMasterPage
         HttpContext.Current.Session("LoginID") = ""
       End If
     Catch ex As Exception
-
     End Try
     If Not SIS.SYS.Utilities.ValidateURL.Validate(Request.AppRelativeCurrentExecutionFilePath) Then
-      Response.Redirect("~/Login.aspx")
+      Response.Redirect("~/bsLogin.aspx")
     End If
     Authenticated = False
     bsmenu.Visible = False
@@ -302,10 +302,10 @@ Partial Class lgMasterPage
     End If
   End Sub
 
-  Public Sub LoggedOut(ByVal sender As Object, ByVal e As System.EventArgs)
-    Authenticated = False
-    SIS.SYS.Utilities.SessionManager.DestroySessionEnvironement()
-  End Sub
+  'Public Sub LoggedOut(ByVal sender As Object, ByVal e As System.EventArgs)
+  '  Authenticated = False
+  '  SIS.SYS.Utilities.SessionManager.DestroySessionEnvironement()
+  'End Sub
 
   Private Sub lgMasterPage_PreRender(sender As Object, e As EventArgs) Handles Me.PreRender
     cmdChangePassword.Visible = Authenticated

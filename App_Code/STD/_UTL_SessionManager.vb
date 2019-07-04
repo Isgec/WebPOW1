@@ -123,23 +123,28 @@ Namespace SIS.SYS.Utilities
     End Sub
     Public Shared Sub DestroySessionEnvironement()
 
-      If HttpContext.Current.Session("LastURL") IsNot Nothing Then
-        Dim RedirectURL As String = HttpContext.Current.Session("LastURL")
-        Dim mVars As List(Of mySVars) = HttpContext.Current.Session("LastVars")
-        Dim UserID As String = HttpContext.Current.Session("LoginID")
-        HttpContext.Current.Session.Clear()
-        'For Each tmp As mySVars In mVars
-        '  HttpContext.Current.Session(tmp.Key) = tmp.Value
-        'Next
-        RedirectURL = RedirectURL.Replace("mMenu", "mDefault")
-        RedirectURL &= "?UserID=" & UserID
-        HttpContext.Current.Response.Redirect(RedirectURL)
-      End If
+      'If HttpContext.Current.Session("LastURL") IsNot Nothing Then
+      '  Dim RedirectURL As String = HttpContext.Current.Session("LastURL")
+      '  Dim mVars As List(Of mySVars) = HttpContext.Current.Session("LastVars")
+      '  Dim UserID As String = HttpContext.Current.Session("LoginID")
+      '  HttpContext.Current.Session.Clear()
+      '  'For Each tmp As mySVars In mVars
+      '  '  HttpContext.Current.Session(tmp.Key) = tmp.Value
+      '  'Next
+      '  RedirectURL = RedirectURL.Replace("mMenu", "mDefault")
+      '  RedirectURL &= "?UserID=" & UserID
+      '  HttpContext.Current.Response.Redirect(RedirectURL)
+      'End If
+      Try
+        FormsAuthentication.SignOut()
+        With HttpContext.Current
+          .Session.Clear()
+          .Session.Abandon()
+        End With
+        HttpContext.Current.Response.Redirect("~/bsLogin.aspx")
+      Catch ex As Exception
+      End Try
 
-      With HttpContext.Current
-        .Session.Clear()
-        .Session.Abandon()
-      End With
     End Sub
     Public Class lgNavBar
       Public Property Target As String = ""

@@ -76,7 +76,14 @@ Namespace SIS.POW
       Return mRet
     End Function
     Public Function GetDeleteable() As Boolean
-      Dim mRet As Boolean = True
+      Dim mRet As Boolean = False
+      Try
+        Select Case StatusID
+          Case enumEnquiryStates.EnquiryCreated
+            mRet = True
+        End Select
+      Catch ex As Exception
+      End Try
       Return mRet
     End Function
     Public ReadOnly Property Editable() As Boolean
