@@ -290,9 +290,6 @@ Namespace SIS.POW
                 ReceiptID = OfferToRevise.ReceiptID
                 ReceiptRevision = (Convert.ToInt32(OfferToRevise.ReceiptRevision) + 1).ToString.PadLeft(2, "0")
               Case enumERPStates.Closed, enumERPStates.Superseded
-                action = "NEW"
-                ReceiptID = GetNextRecNo()
-                ReceiptRevision = "00"
               Case enumERPStates.TechnicallyCleared
                 Throw New Exception("Receipt: " & x.ReceiptID & "_" & x.ReceiptRevision & " is already TECHNICALLY CLEARED.")
               Case enumERPStates.Submitted, enumERPStates.UnderEvaluation, enumERPStates.DocumentLinked
@@ -303,6 +300,11 @@ Namespace SIS.POW
             Exit For
           End If
         Next
+        If OfferToRevise Is Nothing Then
+          action = "NEW"
+          ReceiptID = GetNextRecNo()
+          ReceiptRevision = "00"
+        End If
       End If
       '=========================
       'B. Perform Identified Action

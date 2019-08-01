@@ -372,8 +372,15 @@ Namespace SIS.POW
       End With
       Return sender
     End Function
-    Private Shared Function Insert168(ByVal pWF As SIS.POW.powTSIndents, ByVal Comp As String) As String
+    Public Shared Function Insert168(ByVal pWF As SIS.POW.powTSIndents, ByVal Comp As String) As String
       Dim Sql As String = ""
+      Dim LotItem As String = ""
+      If pWF.LotItem.Length > 50 Then
+        LotItem = pWF.LotItem.Substring(0, 50)
+      Else
+        LotItem = pWF.LotItem
+      End If
+
       Sql &= "   INSERT [tdmisg168" & Comp & "] "
       Sql &= "   ( "
       Sql &= "    [t_wfid] " 'int
@@ -400,9 +407,9 @@ Namespace SIS.POW
       Sql &= "   ( "
       Sql &= "     " & pWF.TSID
       Sql &= "   , " & 0
-      Sql &= "   ,'" & pWF.ProjectID
-      Sql &= "   ,'" & pWF.ElementID
-      Sql &= "   ,'" & IIf(pWF.LotItem.Length > 50, pWF.LotItem.Substring(0, 50), pWF.LotItem) & "'"
+      Sql &= "   ,'" & pWF.ProjectID & "'"
+      Sql &= "   ,'" & pWF.ElementID & "'"
+      Sql &= "   ,'" & LotItem & "'"
       Sql &= "   ,'" & pWF.BuyerID & "'"
       Sql &= "   ,'" & "Technical Specification Released" & "'"
       Sql &= "   ,'" & pWF.FK_POW_TSIndents_TSID.CreatedBy & "'"
@@ -432,7 +439,7 @@ Namespace SIS.POW
       End Using
       Return ""
     End Function
-    Private Shared Sub Insert167(ByVal pWFpmdl As SIS.POW.powTSIndentDocuments, ByVal Comp As String)
+    Public Shared Sub Insert167(ByVal pWFpmdl As SIS.POW.powTSIndentDocuments, Optional ByVal Comp As String = "200")
       Dim Sql As String = ""
       Sql &= "   INSERT [tdmisg167" & Comp & "] "
       Sql &= "   ( "
@@ -678,5 +685,111 @@ Namespace SIS.POW
     '  Return ""
     'End Function
 
+
+    Public Shared Function SyncCTData(ByVal FromDT As String, Optional ByVal tsid As Integer = 0) As Boolean
+      Dim mRet As Boolean = True
+      If FromDT = "" Then
+        FromDT = "01/08/2019" ' "25/05/2019"
+      End If
+      '1. Get TS List
+      Dim Sql As String = ""
+      If tsid = 0 Then
+        Sql = "select * from POW_TechnicalSpecifications where CreatedOn>=convert(datetime,'" & FromDT & "',103)"
+      Else
+        Sql = "select * from POW_TechnicalSpecifications where tsid=" & tsid
+      End If
+      Dim tsList As New List(Of SIS.POW.powTechnicalSpecifications)
+      Using Con As SqlConnection = New SqlConnection(SIS.SYS.SQLDatabase.DBCommon.GetConnectionString())
+        Using Cmd As SqlCommand = Con.CreateCommand()
+          Cmd.CommandType = CommandType.Text
+          Cmd.CommandText = Sql
+          Con.Open()
+          Dim rd As SqlDataReader = Cmd.ExecuteReader
+          While rd.Read
+            tsList.Add(New SIS.POW.powTechnicalSpecifications(rd))
+          End While
+        End Using
+      End Using
+      '2. Process each TS
+      For Each ts As SIS.POW.powTechnicalSpecifications In tsList
+        If ts.StatusID = enumTSStates.Created Then Continue For
+        Dim Indts As List(Of SIS.POW.powTSIndents) = SIS.POW.powTSIndents.powTSIndentsSelectList(0, 10, "", False, "", ts.TSID)
+        If Indts.Count <= 0 Then Continue For
+        Dim Comp As String = SIS.RFQ.rfqGeneral.GetERPCompanyByIndentNo(Indts(0).IndentNo)
+        '3. Search ts in ERP
+        Dim erpTS As SIS.DM.dmisg168 = SIS.DM.dmisg168.GetByID(ts.TSID, Comp)
+        If erpTS IsNot Nothing Then
+          '4. if found update status
+          Dim t_stat As String = ""
+          Select Case ts.StatusID
+            Case enumTSStates.TechnicalSpecificationReleased
+              t_stat = "Technical Specification Released"
+            Case enumTSStates.EnquiryInProgress
+              t_stat = "Enquiry in progress"
+            Case enumTSStates.AllOfferReceived
+              t_stat = "All Offer Received"
+            Case enumTSStates.CommercialofferFinalized
+              t_stat = "Commercial offer Finalized"
+          End Select
+          Using Con As SqlConnection = New SqlConnection(SIS.SYS.SQLDatabase.DBCommon.GetBaaNConnectionString())
+            Con.Open()
+            Using Cmd As SqlCommand = Con.CreateCommand()
+              Cmd.CommandType = CommandType.Text
+              Cmd.CommandText = "   UPDATE [tdmisg168" & Comp & "]  set t_stat = '" & t_stat & "' where t_wfid=" & erpTS.t_wfid
+              Cmd.ExecuteNonQuery()
+            End Using
+          End Using
+        Else
+          '5. if not found insert 
+          erpTS = SIS.DM.dmisg168.Getdmisg168(ts)
+          SIS.DM.dmisg168.InsertData(erpTS, Comp)
+        End If
+        '6. Insert Update Documents
+        Dim tsDocs As List(Of SIS.POW.powTSIndentDocuments) = SIS.POW.powTSIndentDocuments.powTSIndentDocumentsSelectList(0, 9999, "", False, "", 0, ts.TSID)
+        For Each doc As SIS.POW.powTSIndentDocuments In tsDocs
+          Dim erpDoc As SIS.DM.dmisg167 = SIS.DM.dmisg167.GetByID(doc.TSID, doc.DocumentID, Comp)
+          If erpDoc Is Nothing Then
+            Using Con As SqlConnection = New SqlConnection(SIS.SYS.SQLDatabase.DBCommon.GetBaaNConnectionString())
+              Using Cmd As SqlCommand = Con.CreateCommand()
+                Cmd.CommandType = CommandType.Text
+                Cmd.CommandText = "insert tdmisg167" & Comp & " (t_wfid,t_docn,t_Refcntd,t_Refcntu) values (" & doc.TSID & ",'" & doc.DocumentID & "',0,0)"
+                Con.Open()
+                Cmd.ExecuteNonQuery()
+              End Using
+            End Using
+          End If
+        Next
+        '7. Insert Update Enquiries
+        Dim tsEnqs As List(Of SIS.POW.powEnquiries) = SIS.POW.powEnquiries.powEnquiriesSelectList(0, 9999, "", False, "", ts.TSID)
+        For Each enq As SIS.POW.powEnquiries In tsEnqs
+          If enq.StatusID = enumEnquiryStates.EnquiryCreated Then Continue For
+          '8. Search in ERP
+          Dim erpEnq As SIS.DM.dmisg168 = SIS.DM.dmisg168.GetEnquiry(enq.EnquiryIDERP, enq.TSID, Comp)
+          If erpEnq Is Nothing Then
+            erpEnq = SIS.DM.dmisg168.GetErpEnq(enq)
+            SIS.DM.dmisg168.InsertData(erpEnq, Comp)
+          Else
+            Dim t_stat As String = ""
+            Select Case enq.StatusID
+              Case enumEnquiryStates.EnquiryRaised
+                t_stat = "Enquiry Raised"
+              Case enumEnquiryStates.OfferReceived
+                t_stat = "Technical offer Received"
+              Case enumEnquiryStates.CommercialNegotiationCompleted
+                t_stat = "Enquiry For Techno Commercial Negotiation Completed"
+            End Select
+            Using Con As SqlConnection = New SqlConnection(SIS.SYS.SQLDatabase.DBCommon.GetBaaNConnectionString())
+              Con.Open()
+              Using Cmd As SqlCommand = Con.CreateCommand()
+                Cmd.CommandType = CommandType.Text
+                Cmd.CommandText = "   UPDATE [tdmisg168" & Comp & "]  set t_stat = '" & t_stat & "' where t_wfid=" & erpEnq.t_wfid & " and t_pwfd=" & erpEnq.t_pwfd
+                Cmd.ExecuteNonQuery()
+              End Using
+            End Using
+          End If
+        Next
+      Next
+      Return mRet
+    End Function
   End Class
 End Namespace

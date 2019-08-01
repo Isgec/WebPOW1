@@ -3,5 +3,6 @@
 <div style="float:left">
 <%= abcd %>
 </div>
+<asp:Button ID="cmdUpdate" runat="server" Visible="false" Text="UPDATE CT Data" />
 </asp:Content>
 

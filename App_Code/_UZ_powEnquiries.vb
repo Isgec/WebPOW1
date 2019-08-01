@@ -12,6 +12,13 @@ Namespace SIS.POW
         Return TSID & "_" & EnquiryID
       End Get
     End Property
+    Public ReadOnly Property EnquiryIDERP As Integer
+      Get
+        Return 2000000 + EnquiryID
+      End Get
+    End Property
+
+
     Public ReadOnly Property M_details As String
       Get
         Dim mRet As String = "<ul>"
@@ -513,7 +520,7 @@ Namespace SIS.POW
         Sql &= "   SET "
         Sql &= "   [t_stat] ='Enquiry For Techno Commercial Negotiation Completed' "
         Sql &= "   WHERE "
-        Sql &= "   [t_wfid] =" & pEnq.EnquiryID
+        Sql &= "   [t_wfid] =" & pEnq.EnquiryIDERP
         Sql &= "   AND [t_pwfd] =" & pEnq.TSID
         Sql &= "   AND [t_stat] ='Technical offer Received' "
         Using Cmd As SqlCommand = Con.CreateCommand()
@@ -537,7 +544,7 @@ Namespace SIS.POW
         Sql &= "   SET "
         Sql &= "   [t_stat] ='Technical offer Received' "
         Sql &= "   WHERE "
-        Sql &= "   [t_wfid] =" & pEnq.EnquiryID
+        Sql &= "   [t_wfid] =" & pEnq.EnquiryIDERP
         Sql &= "   AND [t_pwfd] =" & pEnq.TSID
         Sql &= "   AND [t_stat] ='Enquiry Raised' "
         Using Cmd As SqlCommand = Con.CreateCommand()
@@ -580,10 +587,10 @@ Namespace SIS.POW
       Sql &= "   ) "
       Sql &= "   VALUES "
       Sql &= "   ( "
-      Sql &= "     " & pEnq.EnquiryID
+      Sql &= "     " & pEnq.EnquiryIDERP
       Sql &= "   , " & pEnq.TSID
-      Sql &= "   ,'" & pWF.ProjectID
-      Sql &= "   ,'" & pWF.ElementID
+      Sql &= "   ,'" & pWF.ProjectID & "'"
+      Sql &= "   ,'" & pWF.ElementID & "'"
       Sql &= "   ,''"
       Sql &= "   ,'" & pWF.BuyerID & "'"
       Sql &= "   ,'" & "Enquiry Raised" & "'"

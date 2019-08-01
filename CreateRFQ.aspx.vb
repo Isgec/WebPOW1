@@ -61,6 +61,22 @@ Partial Class CreateRFQ
       cntI += 1
     End While
     If oTS IsNot Nothing Then
+      '======Update CT======
+      If CType(ConfigurationManager.AppSettings("UpdateCT"), Boolean) Then
+        Dim Indents As List(Of SIS.POW.powTSIndents) = SIS.POW.powTSIndents.UZ_powTSIndentsSelectList(0, 999, "", False, "", oTS.TSID)
+        Dim Comp As String = SIS.RFQ.rfqGeneral.GetERPCompanyByIndentNo(Indents(0).IndentNo)
+        SIS.POW.powTechnicalSpecifications.Insert168(Indents(0), Comp)  'By First Indent 
+        For Each Indent As SIS.POW.powTSIndents In Indents
+          Dim Docs As List(Of SIS.POW.powTSIndentDocuments) = SIS.POW.powTSIndentDocuments.UZ_powTSIndentDocumentsSelectList(0, 9999, "", False, "", Indent.SerialNo, Indent.TSID)
+          For Each doc As SIS.POW.powTSIndentDocuments In Docs
+            Try
+              SIS.POW.powTechnicalSpecifications.Insert167(doc, Comp)
+            Catch ex As Exception
+            End Try
+          Next
+        Next
+      End If
+      '======================
       If SIS.SYS.Utilities.SessionManager.DoLogin(UserID) Then
         Dim RedirectURL As String = "~/POW_Main/App_Edit/EF_powTechnicalSpecifications.aspx?TSID=" & oTS.TSID
         Response.Redirect(RedirectURL)
