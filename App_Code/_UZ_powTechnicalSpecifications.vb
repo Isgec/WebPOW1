@@ -333,10 +333,36 @@ Namespace SIS.POW
         Dim Indents As List(Of SIS.POW.powTSIndents) = SIS.POW.powTSIndents.UZ_powTSIndentsSelectList(0, 999, "", False, "", Results.TSID)
         Dim Comp As String = SIS.RFQ.rfqGeneral.GetERPCompanyByIndentNo(Indents(0).IndentNo)
         CT_Update_CommercialFinalized(Results, Comp)
+        CT_Update_140_CommercialFinalized(Results, Comp)
       End If
       '==========================
       Return Results
     End Function
+    Public Shared Sub CT_Update_140_CommercialFinalized(tmp As SIS.POW.powTechnicalSpecifications, Comp As String)
+      Dim tmpDocs As List(Of SIS.EDI.ediAFile) = SIS.EDI.ediAFile.ediAFileGetAllByHandleIndex(tmp.AthHandle, tmp.AthIndex, Comp)
+      Dim Sql As String = ""
+      Using Con As SqlConnection = New SqlConnection(SIS.SYS.SQLDatabase.DBCommon.GetBaaNConnectionString())
+        Con.Open()
+        For Each fl As SIS.EDI.ediAFile In tmpDocs
+          Sql = ""
+          Sql &= "   UPDATE [tdmisg140" & Comp & "] "
+          Sql &= "   SET "
+          Sql &= "   [t_cmfd] = convert(datetime,'" & tmp.CommercialOfferFinalizedOn & "',103) "
+          Sql &= "   WHERE "
+          Sql &= "   upper([t_docn]) =upper('" & IO.Path.GetFileNameWithoutExtension(fl.t_fnam) & "') "
+          Sql &= "   AND [t_cmfd] < convert(datetime,'01/01/2000',103) and t_cmfd < convert(datetime,'" & tmp.CommercialOfferFinalizedOn & "',103)"
+          Using Cmd As SqlCommand = Con.CreateCommand()
+            Cmd.CommandType = CommandType.Text
+            Cmd.CommandText = Sql
+            Try
+              Cmd.ExecuteNonQuery()
+            Catch ex As Exception
+              Dim aa = ex
+            End Try
+          End Using
+        Next
+      End Using
+    End Sub
     Private Shared Sub CT_Update_CommercialFinalized(ByVal pTS As SIS.POW.powTechnicalSpecifications, Optional ByVal Comp As String = "200")
       Dim Sql As String = ""
       Using Con As SqlConnection = New SqlConnection(SIS.SYS.SQLDatabase.DBCommon.GetBaaNConnectionString())
@@ -689,12 +715,13 @@ Namespace SIS.POW
     Public Shared Function SyncCTData(ByVal FromDT As String, Optional ByVal tsid As Integer = 0) As Boolean
       Dim mRet As Boolean = True
       If FromDT = "" Then
-        FromDT = "01/08/2019" ' "25/05/2019"
+        FromDT = "25/05/2019" '  "01/08/2019"   '
       End If
       '1. Get TS List
       Dim Sql As String = ""
       If tsid = 0 Then
         Sql = "select * from POW_TechnicalSpecifications where CreatedOn>=convert(datetime,'" & FromDT & "',103)"
+        Sql = "select * from POW_TechnicalSpecifications where tsid>10596"
       Else
         Sql = "select * from POW_TechnicalSpecifications where tsid=" & tsid
       End If
@@ -744,6 +771,13 @@ Namespace SIS.POW
           erpTS = SIS.DM.dmisg168.Getdmisg168(ts)
           SIS.DM.dmisg168.InsertData(erpTS, Comp)
         End If
+        '==================
+        If ts.StatusID = enumTSStates.CommercialofferFinalized Then
+          If ts.CommercialOfferFinalizedOn <> "" Then
+            SIS.POW.powTechnicalSpecifications.CT_Update_140_CommercialFinalized(ts, Comp)
+          End If
+        End If
+        '==================
         '6. Insert Update Documents
         Dim tsDocs As List(Of SIS.POW.powTSIndentDocuments) = SIS.POW.powTSIndentDocuments.powTSIndentDocumentsSelectList(0, 9999, "", False, "", 0, ts.TSID)
         For Each doc As SIS.POW.powTSIndentDocuments In tsDocs
@@ -787,6 +821,14 @@ Namespace SIS.POW
               End Using
             End Using
           End If
+          '==============
+          If enq.SentOn <> "" Then
+            SIS.POW.powEnquiries.CT_Update_140_FirstEnquiryRaised(enq, Comp)
+          End If
+          If enq.OfferReceivedOn <> "" Then
+            SIS.POW.powEnquiries.CT_Update_140_OfferReceived(enq, Comp)
+          End If
+          '==============
         Next
       Next
       Return mRet

@@ -188,7 +188,7 @@ Namespace SIS.EDI
       Using Con As SqlConnection = New SqlConnection(SIS.SYS.SQLDatabase.DBCommon.GetBaaNConnectionString())
         Using Cmd As SqlCommand = Con.CreateCommand()
           Cmd.CommandType = CommandType.Text
-          Cmd.CommandText = "Select top 1 * from ttcisg132" & Comp & " where t_hndl='" & t_hndl & "' and t_indx='" & t_indx & "'"
+          Cmd.CommandText = "Select * from ttcisg132" & Comp & " where t_hndl='" & t_hndl & "' and t_indx='" & t_indx & "'"
           Con.Open()
           Dim Reader As SqlDataReader = Cmd.ExecuteReader()
           While Reader.Read()

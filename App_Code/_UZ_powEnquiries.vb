@@ -149,10 +149,38 @@ Namespace SIS.POW
         Dim Indents As List(Of SIS.POW.powTSIndents) = SIS.POW.powTSIndents.UZ_powTSIndentsSelectList(0, 999, "", False, "", Results.TSID)
         Dim Comp As String = SIS.RFQ.rfqGeneral.GetERPCompanyByIndentNo(Indents(0).IndentNo)
         CT_Update_OfferReceived(Results, Comp)
+        If Results.OfferReceivedOn <> "" Then
+          CT_Update_140_OfferReceived(Results, Comp)
+        End If
       End If
       '======================
       Return Results
     End Function
+    Public Shared Sub CT_Update_140_OfferReceived(tmp As SIS.POW.powEnquiries, Comp As String)
+      Dim tmpDocs As List(Of SIS.EDI.ediAFile) = SIS.EDI.ediAFile.ediAFileGetAllByHandleIndex(tmp.AthHandle, tmp.AthIndex, Comp)
+      Dim Sql As String = ""
+      Using Con As SqlConnection = New SqlConnection(SIS.SYS.SQLDatabase.DBCommon.GetBaaNConnectionString())
+        Con.Open()
+        For Each fl As SIS.EDI.ediAFile In tmpDocs
+          Sql = ""
+          Sql &= "   UPDATE [tdmisg140" & Comp & "] "
+          Sql &= "   SET "
+          Sql &= "   [t_ofdt] = convert(datetime,'" & tmp.OfferReceivedOn & "',103) "
+          Sql &= "   WHERE "
+          Sql &= "   upper([t_docn]) =upper('" & IO.Path.GetFileNameWithoutExtension(fl.t_fnam) & "') "
+          Sql &= "   AND [t_ofdt] < convert(datetime,'01/01/2000',103) and t_ofdt < convert(datetime,'" & tmp.OfferReceivedOn & "',103)"
+          Using Cmd As SqlCommand = Con.CreateCommand()
+            Cmd.CommandType = CommandType.Text
+            Cmd.CommandText = Sql
+            Try
+              Cmd.ExecuteNonQuery()
+            Catch ex As Exception
+              Dim aa = ex
+            End Try
+          End Using
+        Next
+      End Using
+    End Sub
 
 #End Region
 #Region " Delete "
@@ -370,10 +398,38 @@ Namespace SIS.POW
         Dim Indents As List(Of SIS.POW.powTSIndents) = SIS.POW.powTSIndents.UZ_powTSIndentsSelectList(0, 999, "", False, "", tmp.TSID)
         Dim Comp As String = SIS.RFQ.rfqGeneral.GetERPCompanyByIndentNo(Indents(0).IndentNo)
         CT_Update_EnquiryRaised(Indents(0), tmp, tmpTS, Comp)  'By First Indent 
+        If tmp.SentOn <> "" Then
+          CT_Update_140_FirstEnquiryRaised(tmp, Comp)
+        End If
       End If
       '======================
       Return tmp
     End Function
+    Public Shared Sub CT_Update_140_FirstEnquiryRaised(tmp As SIS.POW.powEnquiries, Comp As String)
+      Dim tmpDocs As List(Of SIS.EDI.ediAFile) = SIS.EDI.ediAFile.ediAFileGetAllByHandleIndex(tmp.AthHandle, tmp.AthIndex, Comp)
+      Dim Sql As String = ""
+      Using Con As SqlConnection = New SqlConnection(SIS.SYS.SQLDatabase.DBCommon.GetBaaNConnectionString())
+        Con.Open()
+        For Each fl As SIS.EDI.ediAFile In tmpDocs
+          Sql = ""
+          Sql &= "   UPDATE [tdmisg140" & Comp & "] "
+          Sql &= "   SET "
+          Sql &= "   [t_rfqd] = convert(datetime,'" & tmp.SentOn & "',103) "
+          Sql &= "   WHERE "
+          Sql &= "   upper([t_docn]) =upper('" & IO.Path.GetFileNameWithoutExtension(fl.t_fnam) & "') "
+          Sql &= "   AND [t_rfqd] < convert(datetime,'01/01/2000',103) and t_rfqd < convert(datetime,'" & tmp.SentOn & "',103)"
+          Using Cmd As SqlCommand = Con.CreateCommand()
+            Cmd.CommandType = CommandType.Text
+            Cmd.CommandText = Sql
+            Try
+              Cmd.ExecuteNonQuery()
+            Catch ex As Exception
+              Dim aa = ex
+            End Try
+          End Using
+        Next
+      End Using
+    End Sub
     Public Shared Function ApproveWF(ByVal TSID As Int32, ByVal EnquiryID As Int32) As SIS.POW.powEnquiries
       Dim Results As SIS.POW.powEnquiries = powEnquiriesGetByID(TSID, EnquiryID)
       Return Results
