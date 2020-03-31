@@ -262,6 +262,15 @@
                             <ItemStyle CssClass="alignCenter" />
                             <HeaderStyle CssClass="alignCenter" Width="30px" />
                           </asp:TemplateField>
+                          <asp:TemplateField HeaderText="Offers Receipts" >
+                            <ItemTemplate>
+                              <div style="display:flex; flex-direction:row;">
+                                <div class='btn-warning' title="Offers" style='font-weight:bold;padding:5px;border-radius:10px;'><%# Eval("GetOffers") %></div>
+                                <div class='btn-primary' title="IDMS Receipts" style='font-weight:bold;padding:5px;border-radius:10px;'><%# Eval("GetReceipts") %></div>
+                              </div>
+                            </ItemTemplate>
+                            <HeaderStyle Width="60px" />
+                          </asp:TemplateField>
                           <asp:TemplateField HeaderText="Supplier">
                             <ItemTemplate>
                               <asp:Button ID="L_SupplierID" runat="server" ForeColor='<%# Eval("ForeColor") %>' BorderStyle="None" BackColor="Transparent" style="cursor:pointer;" Font-Underline="true" Title='<%# EVal("GetSupplier") %>' Text='<%# Eval("GetSupplier") %>' CommandName="lgEmailIDs" CommandArgument='<%# Container.DataItemIndex %>'></asp:Button>

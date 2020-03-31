@@ -57,5 +57,29 @@ Namespace SIS.POW
       Dim Results As SIS.POW.powTSChangeBuyer = powTSChangeBuyerGetByID(TSID)
       Return Results
     End Function
+    Public Shared Function powTSChangeBuyerUpdate(ByVal Record As SIS.POW.powTSChangeBuyer) As SIS.POW.powTSChangeBuyer
+      Dim _Rec As SIS.POW.powTechnicalSpecifications = SIS.POW.powTechnicalSpecifications.powTechnicalSpecificationsGetByID(Record.TSID)
+      _Rec.CreatedBy = Record.CreatedBy
+      _Rec = SIS.POW.powTechnicalSpecifications.UpdateData(_Rec)
+      '======Update CT======
+      If CType(ConfigurationManager.AppSettings("UpdateCT"), Boolean) Then
+        Dim Indents As List(Of SIS.POW.powTSIndents) = SIS.POW.powTSIndents.UZ_powTSIndentsSelectList(0, 999, "", False, "", Record.TSID)
+        Dim Comp As String = SIS.RFQ.rfqGeneral.GetERPCompanyByIndentNo(Indents(0).IndentNo)
+        Using Con As SqlConnection = New SqlConnection(SIS.SYS.SQLDatabase.DBCommon.GetBaaNConnectionString())
+          Using Cmd As SqlCommand = Con.CreateCommand()
+            Cmd.CommandType = CommandType.Text
+            Cmd.CommandText = " UPDATE tdmisg168" & Comp & " set t_user='" & Record.CreatedBy & "' where t_wfid=" & Record.TSID
+            Con.Open()
+            Try
+              Cmd.ExecuteNonQuery()
+            Catch ex As Exception
+              Throw New Exception("Buyer NOT Changed in ERP")
+            End Try
+          End Using
+        End Using
+      End If
+      '======================
+      Return Record
+    End Function
   End Class
 End Namespace

@@ -150,12 +150,22 @@
           <ItemTemplate>
             <asp:Label ID="LabelTSDescription" runat="server" ForeColor='<%# EVal("ForeColor") %>' Text='<%# Bind("TSDescription") %>'></asp:Label>
           </ItemTemplate>
-          <ItemStyle CssClass="alignCenter" />
-        <HeaderStyle CssClass="alignCenter" Width="100px" />
+          <ItemStyle CssClass="alignleft" />
+        <HeaderStyle CssClass="alignleft" Width="300px" />
+        </asp:TemplateField>
+        <asp:TemplateField HeaderText="Enquiries Offers Receipts" >
+          <ItemTemplate>
+            <div style="display:flex; flex-direction:row;">
+              <div class='btn-danger' title="Enquiries" style='font-weight:bold;padding:5px;border-radius:10px;'><%# Eval("GetEnquiries") %></div>
+              <div class='btn-warning' title="Offers" style='font-weight:bold;padding:5px;border-radius:10px;'><%# Eval("GetOffers") %></div>
+              <div class='btn-primary' title="IDMS Receipts" style='font-weight:bold;padding:5px;border-radius:10px;'><%# Eval("GetReceipts") %></div>
+            </div>
+          </ItemTemplate>
+          <HeaderStyle Width="60px" />
         </asp:TemplateField>
         <asp:TemplateField HeaderText="Projects" >
           <ItemTemplate>
-             <asp:Label ID="L_Projects" runat="server" ForeColor='<%# EVal("ForeColor") %>' Title='<%# EVal("Projects") %>' Text='<%# Eval("Projects") %>'></asp:Label>
+             <asp:Label ID="L_Projects" runat="server" ForeColor='<%# Eval("ForeColor") %>' Title='<%# EVal("Projects") %>' Text='<%# Eval("Projects") %>'></asp:Label>
           </ItemTemplate>
           <HeaderStyle Width="100px" />
         </asp:TemplateField>

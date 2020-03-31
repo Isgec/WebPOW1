@@ -580,7 +580,7 @@ Namespace SIS.TDPUR
       Dim Sql As String = ""
       Sql &= " update "
       Sql &= " ttdpur201" & Comp
-      Sql &= " set t_tsid=" & TSID
+      Sql &= " set t_cdf_rfqn=" & TSID
       Sql &= " where "
       Sql &= " t_rqno = '" & t_rqno & "'"
       Sql &= " and t_pono = " & t_pono

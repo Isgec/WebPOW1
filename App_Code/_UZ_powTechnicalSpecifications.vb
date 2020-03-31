@@ -6,6 +6,48 @@ Imports System.ComponentModel
 Namespace SIS.POW
   Partial Public Class powTechnicalSpecifications
     Private _Projects As String = ""
+    Public ReadOnly Property GetEnquiries As Integer
+      Get
+        Dim mRet As Integer = 0
+        Using Con As SqlConnection = New SqlConnection(SIS.SYS.SQLDatabase.DBCommon.GetConnectionString())
+          Con.Open()
+          Using Cmd As SqlCommand = Con.CreateCommand()
+            Cmd.CommandType = CommandType.Text
+            Cmd.CommandText = "select isnull(count(*),0) from POW_Enquiries where tsid=" & TSID
+            mRet = Cmd.ExecuteScalar
+          End Using
+        End Using
+        Return mRet
+      End Get
+    End Property
+    Public ReadOnly Property GetOffers As Integer
+      Get
+        Dim mRet As Integer = 0
+        Using Con As SqlConnection = New SqlConnection(SIS.SYS.SQLDatabase.DBCommon.GetConnectionString())
+          Con.Open()
+          Using Cmd As SqlCommand = Con.CreateCommand()
+            Cmd.CommandType = CommandType.Text
+            Cmd.CommandText = "select isnull(count(*),0) from POW_Offers where tsid=" & TSID
+            mRet = Cmd.ExecuteScalar
+          End Using
+        End Using
+        Return mRet
+      End Get
+    End Property
+    Public ReadOnly Property GetReceipts As Integer
+      Get
+        Dim mRet As Integer = 0
+        Using Con As SqlConnection = New SqlConnection(SIS.SYS.SQLDatabase.DBCommon.GetConnectionString())
+          Con.Open()
+          Using Cmd As SqlCommand = Con.CreateCommand()
+            Cmd.CommandType = CommandType.Text
+            Cmd.CommandText = "select isnull(count(*),0) from POW_Offers where tsid=" & TSID & " and ReceiptID is not null"
+            mRet = Cmd.ExecuteScalar
+          End Using
+        End Using
+        Return mRet
+      End Get
+    End Property
     Public ReadOnly Property Projects As String
       Get
         If _Projects <> "" Then Return _Projects
@@ -711,7 +753,23 @@ Namespace SIS.POW
     '  Return ""
     'End Function
 
-
+    Public Shared Sub updrfqn()
+      Dim tsList As New List(Of SIS.POW.powTSIndents)
+      Using Con As SqlConnection = New SqlConnection(SIS.SYS.SQLDatabase.DBCommon.GetConnectionString())
+        Using Cmd As SqlCommand = Con.CreateCommand()
+          Cmd.CommandType = CommandType.Text
+          Cmd.CommandText = "select * from pow_tsindents"
+          Con.Open()
+          Dim rd As SqlDataReader = Cmd.ExecuteReader
+          While rd.Read
+            tsList.Add(New SIS.POW.powTSIndents(rd))
+          End While
+        End Using
+      End Using
+      For Each oTSI As SIS.POW.powTSIndents In tsList
+        SIS.TDPUR.tdpur201.UpdateTSID(oTSI.IndentNo, oTSI.IndentLine, oTSI.TSID)
+      Next
+    End Sub
     Public Shared Function SyncCTData(ByVal FromDT As String, Optional ByVal tsid As Integer = 0) As Boolean
       Dim mRet As Boolean = True
       If FromDT = "" Then

@@ -281,7 +281,7 @@ Namespace SIS.POW
         Dim tmpOffers As List(Of SIS.POW.powOffers) = powOffersSelectList(0, 9999, "", False, "", EnquiryID, TSID)
         For Each x As SIS.POW.powOffers In tmpOffers
           If x.ReceiptID <> "" AndAlso x.ReceiptRevision <> "" Then
-            ERPReceiptToRevise = SIS.PAK.pakERPRecH.pakERPRecHGetByID(tmpOffer.ReceiptID, tmpOffer.ReceiptRevision)
+            ERPReceiptToRevise = SIS.PAK.pakERPRecH.pakERPRecHGetByID(x.ReceiptID, x.ReceiptRevision)
             If ERPReceiptToRevise Is Nothing Then Continue For
             Select Case ERPReceiptToRevise.t_stat
               Case enumERPStates.CommentSubmitted, enumERPStates.TransmittalIssued
@@ -372,7 +372,6 @@ Namespace SIS.POW
           Next
           '5. Update Offer in WEB
           tmpOffer = SIS.POW.powOffers.UpdateData(tmpOffer)
-
       End Select
       '=================
       'C. Distribute in ERP
@@ -560,7 +559,7 @@ Namespace SIS.POW
         .t_nama = tmpOfr.FK_POW_Offers_EnquiryID.SupplierName
         .t_stat = 1 'submitted
         .t_user = tmpOfr.FK_POW_Offers_EnquiryID.CreatedBy
-        .t_date = Now.ToString("dd/MM/yyyy")
+        .t_date = Now.AddHours(-5).AddMinutes(-30).ToString("dd/MM/yyyy HH:mm")
         .t_rqno = TopIndent.IndentNo
         .t_rqln = TopIndent.IndentLine
         .t_docn = "CRI"  'From Indent: " & TopIndent.IndentNo & " Line: " & TopIndent.IndentLine

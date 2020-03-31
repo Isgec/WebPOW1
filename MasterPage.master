@@ -114,6 +114,13 @@
     }
   </script>
   <%--End of SideScroll Menu--%>
+  <style>
+    body{
+      font-family:Tahoma;
+      font-size:12px;
+    }
+  </style>
+
 </head>
 <body>
   <form id="form1" runat="server">

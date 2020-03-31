@@ -8,7 +8,10 @@ Partial Class LGDefault
   Public Property abcd As String = ""
 
   Private Sub cmdUpdate_Click(sender As Object, e As EventArgs) Handles cmdUpdate.Click
-    SIS.POW.powTechnicalSpecifications.SyncCTData("")
+    'Sync CT Data All
+    'SIS.POW.powTechnicalSpecifications.SyncCTData("")
+    'Update ttdpur201 cdf_rfqn
+    'SIS.POW.powTechnicalSpecifications.updrfqn()
   End Sub
 
   Private Sub LGDefault_PreRender(sender As Object, e As EventArgs) Handles Me.PreRender

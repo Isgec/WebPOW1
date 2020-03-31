@@ -5,6 +5,35 @@ Imports System.Data.SqlClient
 Imports System.ComponentModel
 Namespace SIS.POW
   Partial Public Class powEnquiries
+    Public ReadOnly Property GetOffers As Integer
+      Get
+        Dim mRet As Integer = 0
+        Using Con As SqlConnection = New SqlConnection(SIS.SYS.SQLDatabase.DBCommon.GetConnectionString())
+          Con.Open()
+          Using Cmd As SqlCommand = Con.CreateCommand()
+            Cmd.CommandType = CommandType.Text
+            Cmd.CommandText = "select isnull(count(*),0) from POW_Offers where tsid=" & TSID & " and EnquiryID=" & EnquiryID
+            mRet = Cmd.ExecuteScalar
+          End Using
+        End Using
+        Return mRet
+      End Get
+    End Property
+    Public ReadOnly Property GetReceipts As Integer
+      Get
+        Dim mRet As Integer = 0
+        Using Con As SqlConnection = New SqlConnection(SIS.SYS.SQLDatabase.DBCommon.GetConnectionString())
+          Con.Open()
+          Using Cmd As SqlCommand = Con.CreateCommand()
+            Cmd.CommandType = CommandType.Text
+            Cmd.CommandText = "select isnull(count(*),0) from POW_Offers where tsid=" & TSID & " and ReceiptID is not null " & " and EnquiryID=" & EnquiryID
+            mRet = Cmd.ExecuteScalar
+          End Using
+        End Using
+        Return mRet
+      End Get
+    End Property
+
     Public Property AthProcess As String = "POW_ENQUIRY"
     Public Property AthHandle As String = "J_PREORDER_ENQUIRY"
     Public ReadOnly Property AthIndex As String

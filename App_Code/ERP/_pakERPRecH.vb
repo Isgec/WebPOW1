@@ -159,7 +159,7 @@ Namespace SIS.PAK
     Public Property t_date() As String
       Get
         If Not _t_date = String.Empty Then
-          Return Convert.ToDateTime(_t_date).ToString("dd/MM/yyyy")
+          Return Convert.ToDateTime(_t_date).ToString("dd/MM/yyyy HH:mm")
         End If
         Return _t_date
       End Get
@@ -812,7 +812,7 @@ Namespace SIS.PAK
       Return SIS.PAK.pakERPRecH.UpdateData(_Rec)
     End Function
     Public Shared Function UpdateData(ByVal Record As SIS.PAK.pakERPRecH) As SIS.PAK.pakERPRecH
-      Using Con As SqlConnection = New SqlConnection(SIS.SYS.SQLDatabase.DBCommon.GetConnectionString())
+      Using Con As SqlConnection = New SqlConnection(SIS.SYS.SQLDatabase.DBCommon.GetBaaNConnectionString())
         Using Cmd As SqlCommand = Con.CreateCommand()
           Cmd.CommandType = CommandType.StoredProcedure
           Cmd.CommandText = "sptdmisg134200Update"  'OLD "sppakERPRecHUpdate"
