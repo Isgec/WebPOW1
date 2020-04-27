@@ -1,4 +1,5 @@
 Imports System.Web.Script.Serialization
+Imports ejiVault
 Partial Class AF_powEnquiries
   Inherits SIS.SYS.InsertBase
   Public Property TSID As String

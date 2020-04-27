@@ -10,6 +10,7 @@ Namespace SIS.SYS.SQLDatabase
     Implements IDisposable
     Public Shared Property BaaNLive As Boolean = False
     Public Shared Property JoomlaLive As Boolean = False
+    Public Shared Property ERPCompany As String = "200"
     Public Shared Function GetFDBaaNConnectionString() As String
       Dim FDBaaNLive As Boolean = Convert.ToBoolean(ConfigurationManager.AppSettings("FDBaaNLive"))
 

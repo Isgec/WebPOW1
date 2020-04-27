@@ -3,22 +3,23 @@ Imports System.Collections.Generic
 Imports System.Data
 Imports System.Data.SqlClient
 Imports System.ComponentModel
+Imports ejiVault
 Namespace SIS.EDI
   <DataObject()>
   Partial Public Class ediAFile
     Private Shared _RecordCount As Integer
     Public Shared Property Comp As String = "200"
-    Private _t_drid As String = ""
-    Private _t_dcid As String = ""
-    Private _t_hndl As String = ""
-    Private _t_indx As String = ""
-    Private _t_prcd As String = ""
-    Private _t_fnam As String = ""
-    Private _t_lbcd As String = ""
-    Private _t_atby As String = ""
+    Public Property t_drid As String = ""
+    Public Property t_dcid As String = ""
+    Public Property t_hndl As String = ""
+    Public Property t_indx As String = ""
+    Public Property t_prcd As String = ""
+    Public Property t_fnam As String = ""
+    Public Property t_lbcd As String = ""
+    Public Property t_atby As String = ""
     Private _t_aton As String = ""
-    Private _t_Refcntd As Int32 = 0
-    Private _t_Refcntu As Int32 = 0
+    Public Property t_Refcntd As Int32 = 0
+    Public Property t_Refcntu As Int32 = 0
     Public ReadOnly Property GetDownloadLink() As String
       Get
         Return "javascript:window.open('" & HttpContext.Current.Request.Url.Scheme & Uri.SchemeDelimiter & HttpContext.Current.Request.Url.Authority & HttpContext.Current.Request.ApplicationPath & "/App_Downloads/athDownload.aspx?ath=" & t_drid & "', 'win" & t_drid & "', 'left=20,top=20,width=100,height=100,toolbar=1,resizable=1,scrollbars=1'); return false;"
@@ -55,71 +56,6 @@ Namespace SIS.EDI
         Return mRet
       End Get
     End Property
-
-    Public Property t_drid() As String
-      Get
-        Return _t_drid
-      End Get
-      Set(ByVal value As String)
-        _t_drid = value
-      End Set
-    End Property
-    Public Property t_dcid() As String
-      Get
-        Return _t_dcid
-      End Get
-      Set(ByVal value As String)
-        _t_dcid = value
-      End Set
-    End Property
-    Public Property t_hndl() As String
-      Get
-        Return _t_hndl
-      End Get
-      Set(ByVal value As String)
-        _t_hndl = value
-      End Set
-    End Property
-    Public Property t_indx() As String
-      Get
-        Return _t_indx
-      End Get
-      Set(ByVal value As String)
-        _t_indx = value
-      End Set
-    End Property
-    Public Property t_prcd() As String
-      Get
-        Return _t_prcd
-      End Get
-      Set(ByVal value As String)
-        _t_prcd = value
-      End Set
-    End Property
-    Public Property t_fnam() As String
-      Get
-        Return _t_fnam
-      End Get
-      Set(ByVal value As String)
-        _t_fnam = value
-      End Set
-    End Property
-    Public Property t_lbcd() As String
-      Get
-        Return _t_lbcd
-      End Get
-      Set(ByVal value As String)
-        _t_lbcd = value
-      End Set
-    End Property
-    Public Property t_atby() As String
-      Get
-        Return _t_atby
-      End Get
-      Set(ByVal value As String)
-        _t_atby = value
-      End Set
-    End Property
     Public Property t_aton() As String
       Get
         If Not _t_aton = String.Empty Then
@@ -131,41 +67,8 @@ Namespace SIS.EDI
         _t_aton = value
       End Set
     End Property
-    Public Property t_Refcntd() As Int32
-      Get
-        Return _t_Refcntd
-      End Get
-      Set(ByVal value As Int32)
-        _t_Refcntd = value
-      End Set
-    End Property
-    Public Property t_Refcntu() As Int32
-      Get
-        Return _t_Refcntu
-      End Get
-      Set(ByVal value As Int32)
-        _t_Refcntu = value
-      End Set
-    End Property
     Public Shared Function GetNextFileName(Optional ByVal Comp As String = "200") As String
-      Dim UniqueFound As Boolean = False
-      Dim tmpNextNo As String = (New Random(Guid.NewGuid().GetHashCode())).Next()
-      Using Con As SqlConnection = New SqlConnection(SIS.SYS.SQLDatabase.DBCommon.GetBaaNConnectionString())
-        Con.Open()
-        Do While Not UniqueFound
-          Using Cmd As SqlCommand = Con.CreateCommand()
-            Cmd.CommandType = CommandType.Text
-            Cmd.CommandText = "select isnull(count(*),0) from ttcisg132" & Comp & " where t_drid = '" & tmpNextNo & "'"
-            Dim cnt As Integer = Cmd.ExecuteScalar()
-            If cnt = 0 Then
-              UniqueFound = True
-              Exit Do
-            End If
-            tmpNextNo = (New Random(Guid.NewGuid().GetHashCode())).Next()
-          End Using
-        Loop
-      End Using
-      Return tmpNextNo
+      Return EJI.ediASeries.GetNextFileID
     End Function
     Public Shared Function ediAFileGetByHandleIndex(ByVal t_hndl As String, ByVal t_indx As String, Optional ByVal Comp As String = "200") As SIS.EDI.ediAFile
       Dim Results As SIS.EDI.ediAFile = Nothing
@@ -199,29 +102,30 @@ Namespace SIS.EDI
       End Using
       Return Results
     End Function
+    Public Shared Function GetEJI(x As SIS.EDI.ediAFile) As EJI.ediAFile
+      Dim y As New EJI.ediAFile
+      With y
+        .t_atby = x.t_atby
+        .t_aton = x.t_aton
+        .t_dcid = x.t_dcid
+        .t_drid = x.t_drid
+        .t_fnam = x.t_fnam
+        .t_hndl = x.t_hndl
+        .t_indx = x.t_indx
+        .t_lbcd = x.t_lbcd
+        .t_prcd = x.t_prcd
+        .t_Refcntd = x.t_Refcntd
+        .t_Refcntu = x.t_Refcntu
+      End With
+      Return y
+    End Function
     Public Shared Function InsertData(ByVal Record As SIS.EDI.ediAFile, Optional ByVal Comp As String = "200") As SIS.EDI.ediAFile
-      Using Con As SqlConnection = New SqlConnection(SIS.SYS.SQLDatabase.DBCommon.GetBaaNConnectionString())
-        Using Cmd As SqlCommand = Con.CreateCommand()
-          Cmd.CommandType = CommandType.StoredProcedure
-          Cmd.CommandText = "spediAFileInsert"
-          If Comp <> "200" Then Cmd.CommandText = "spediAFileInsert" & Comp
-          SIS.SYS.SQLDatabase.DBCommon.AddDBParameter(Cmd, "@t_dcid", SqlDbType.VarChar, 201, Record.t_dcid)
-          SIS.SYS.SQLDatabase.DBCommon.AddDBParameter(Cmd, "@t_hndl", SqlDbType.VarChar, 201, Record.t_hndl)
-          SIS.SYS.SQLDatabase.DBCommon.AddDBParameter(Cmd, "@t_indx", SqlDbType.VarChar, 51, Record.t_indx)
-          SIS.SYS.SQLDatabase.DBCommon.AddDBParameter(Cmd, "@t_prcd", SqlDbType.VarChar, 51, Record.t_prcd)
-          SIS.SYS.SQLDatabase.DBCommon.AddDBParameter(Cmd, "@t_fnam", SqlDbType.VarChar, 251, Record.t_fnam)
-          SIS.SYS.SQLDatabase.DBCommon.AddDBParameter(Cmd, "@t_lbcd", SqlDbType.VarChar, 51, Record.t_lbcd)
-          SIS.SYS.SQLDatabase.DBCommon.AddDBParameter(Cmd, "@t_atby", SqlDbType.VarChar, 51, Record.t_atby)
-          SIS.SYS.SQLDatabase.DBCommon.AddDBParameter(Cmd, "@t_aton", SqlDbType.DateTime, 21, Record.t_aton)
-          SIS.SYS.SQLDatabase.DBCommon.AddDBParameter(Cmd, "@t_Refcntd", SqlDbType.Int, 11, Record.t_Refcntd)
-          SIS.SYS.SQLDatabase.DBCommon.AddDBParameter(Cmd, "@t_Refcntu", SqlDbType.Int, 11, Record.t_Refcntu)
-          Cmd.Parameters.Add("@Return_t_drid", SqlDbType.VarChar, 51)
-          Cmd.Parameters("@Return_t_drid").Direction = ParameterDirection.Output
-          Con.Open()
-          Cmd.ExecuteNonQuery()
-          Record.t_drid = Cmd.Parameters("@Return_t_drid").Value
-        End Using
-      End Using
+      With Record
+        .t_drid = EJI.ediASeries.GetNextRecordID
+        .t_prcd = "EJIMAIN"
+      End With
+      Dim x As EJI.ediAFile = GetEJI(Record)
+      EJI.ediAFile.InsertData(x)
       Return Record
     End Function
     Public Shared Function ediAFileSelectList(ByVal StartRowIndex As Integer, ByVal MaximumRows As Integer, ByVal OrderBy As String, ByVal SearchState As Boolean, ByVal SearchText As String, ByVal t_hndl As String, ByVal t_indx As String) As List(Of SIS.EDI.ediAFile)
@@ -271,13 +175,13 @@ Namespace SIS.EDI
     End Function
     Public Shared Function ediAFileCopy(ByVal s_t_hndl As String, ByVal s_t_indx As String, ByVal t_t_hndl As String, ByVal t_t_indx As String) As List(Of SIS.EDI.ediAFile)
       If CType(ConfigurationManager.AppSettings("RunLocally"), Boolean) Then Return New List(Of SIS.EDI.ediAFile)()
-      Dim Results As List(Of SIS.EDI.ediAFile) = Nothing
+      ejiVault.EJI.ediAFile.FileCopy(s_t_hndl, s_t_indx, t_t_hndl, t_t_indx, HttpContext.Current.Session("LoginID"))
+      Dim Results As New List(Of SIS.EDI.ediAFile)
       Using Con As SqlConnection = New SqlConnection(SIS.SYS.SQLDatabase.DBCommon.GetBaaNConnectionString())
         Using Cmd As SqlCommand = Con.CreateCommand()
           Cmd.CommandType = CommandType.Text
-          Cmd.CommandText = "Select * from ttcisg132" & Comp & " where t_hndl='" & s_t_hndl & "' and t_indx='" & s_t_indx & "'"
+          Cmd.CommandText = "Select * from ttcisg132" & Comp & " where t_hndl='" & t_t_hndl & "' and t_indx='" & t_t_indx & "'"
           _RecordCount = -1
-          Results = New List(Of SIS.EDI.ediAFile)()
           Con.Open()
           Dim Reader As SqlDataReader = Cmd.ExecuteReader()
           While (Reader.Read())
@@ -287,38 +191,12 @@ Namespace SIS.EDI
           _RecordCount = Results.Count
         End Using
       End Using
-      For Each tmp As SIS.EDI.ediAFile In Results
-        With tmp
-          .t_drid = GetNextFileName()
-          .t_hndl = t_t_hndl
-          .t_indx = t_t_indx
-        End With
-        tmp = SIS.EDI.ediAFile.InsertData(tmp)
-      Next
       Return Results
     End Function
     Public Shared Function ediAFileCopy(ByVal t_drid As String, ByVal t_t_hndl As String, ByVal t_t_indx As String) As SIS.EDI.ediAFile
       If CType(ConfigurationManager.AppSettings("RunLocally"), Boolean) Then Return New SIS.EDI.ediAFile
-      Dim Results As SIS.EDI.ediAFile = Nothing
-      Using Con As SqlConnection = New SqlConnection(SIS.SYS.SQLDatabase.DBCommon.GetBaaNConnectionString())
-        Using Cmd As SqlCommand = Con.CreateCommand()
-          Cmd.CommandType = CommandType.Text
-          Cmd.CommandText = "Select * from ttcisg132" & Comp & " where t_drid='" & t_drid & "'"
-          _RecordCount = -1
-          Con.Open()
-          Dim Reader As SqlDataReader = Cmd.ExecuteReader()
-          While (Reader.Read())
-            Results = New SIS.EDI.ediAFile(Reader)
-          End While
-          Reader.Close()
-        End Using
-      End Using
-      With Results
-        .t_drid = GetNextFileName()
-        .t_hndl = t_t_hndl
-        .t_indx = t_t_indx
-      End With
-      Results = SIS.EDI.ediAFile.InsertData(Results)
+      Dim x As EJI.ediAFile = EJI.ediAFile.RecordCopy(t_drid, t_t_hndl, t_t_indx, HttpContext.Current.Session("LoginID"))
+      Dim Results As SIS.EDI.ediAFile = ediAFileGetByID(x.t_drid)
       Return Results
     End Function
 
@@ -418,47 +296,10 @@ Namespace SIS.EDI
       End Get
     End Property
     Public Shared Function DeleteWF(ByVal t_drid As String, Optional ByVal Process As String = "") As SIS.EDI.ediAFile
-      Dim Results As SIS.EDI.ediAFile = ediAFileGetByID(t_drid)
       If CType(ConfigurationManager.AppSettings("RunLocally"), Boolean) Then Return New SIS.EDI.ediAFile
-      Using Con As SqlConnection = New SqlConnection(SIS.SYS.SQLDatabase.DBCommon.GetBaaNConnectionString())
-        Using Cmd As SqlCommand = Con.CreateCommand()
-          Cmd.CommandType = CommandType.Text
-          Cmd.CommandText = "delete ttcisg132" & Comp & " where t_drid='" & t_drid & "'"
-          Con.Open()
-          Cmd.ExecuteNonQuery()
-        End Using
-      End Using
-      If Process = Results.t_prcd Then
-        Try
-          Dim LibFolder As String = "attachmentlibrary1"
-          Dim libPath As String = ""
-          Dim NeedsMapping As Boolean = False
-          Dim Mapped As Boolean = False
-          Dim LibraryID As String = ""
-          Dim tmp As SIS.EDI.ediALib = SIS.EDI.ediALib.GetActiveLibrary
-          LibFolder = tmp.t_path
-          LibraryID = tmp.t_lbcd
-          Dim UrlAuthority As String = HttpContext.Current.Request.Url.Authority
-          If UrlAuthority.ToLower <> "cloud.isgec.co.in" Then
-            UrlAuthority = "192.9.200.146"
-            NeedsMapping = True
-          End If
-          libPath = "D:\" & LibFolder
-          If NeedsMapping Then
-            libPath = "\\" & UrlAuthority & "\" & LibFolder
-            If ConnectToNetworkFunctions.connectToNetwork(libPath, "X:", "administrator", "Indian@12345") Then
-              Mapped = True
-            End If
-          End If
-          If IO.File.Exists(libPath & "\" & Results.t_dcid) Then
-            IO.File.Delete(libPath & "\" & Results.t_dcid)
-          End If
-          If Mapped Then
-            ConnectToNetworkFunctions.disconnectFromNetwork("X:")
-          End If
-        Catch ex As Exception
-        End Try
-      End If
+      Dim Results As SIS.EDI.ediAFile = ediAFileGetByID(t_drid)
+      EJI.ediAFile.FileDelete(t_drid)
+
       Return Results
     End Function
     Public ReadOnly Property DownloadWFVisible() As Boolean
@@ -512,43 +353,26 @@ Namespace SIS.EDI
     End Property
     Public Shared Function DeleteByHandleIndex(ByVal t_hndl As String, ByVal t_indx As String, Optional ByVal Comp As String = "200") As Integer
       If CType(ConfigurationManager.AppSettings("RunLocally"), Boolean) Then Return 0
-      Using Con As SqlConnection = New SqlConnection(SIS.SYS.SQLDatabase.DBCommon.GetBaaNConnectionString())
-        Using Cmd As SqlCommand = Con.CreateCommand()
-          Cmd.CommandType = CommandType.Text
-          Cmd.CommandText = "delete ttcisg132" & Comp & " where t_hndl='" & t_hndl & "' and t_indx='" & t_indx & "'"
-          Con.Open()
-          Cmd.ExecuteNonQuery()
-        End Using
-      End Using
+      Dim xs As List(Of EJI.ediAFile) = EJI.ediAFile.GetFilesByHandleIndex(t_hndl, t_indx)
+      For Each x As EJI.ediAFile In xs
+        EJI.ediAFile.FileDelete(x.t_drid)
+      Next
       Return 1
     End Function
-
     Public Shared Function InitiateWF(ByVal t_drid As String) As SIS.EDI.ediAFile
       Dim Results As SIS.EDI.ediAFile = ediAFileGetByID(t_drid)
       Return Results
     End Function
-    Public Shared Function UploadFiles(ByVal oRequest As HttpRequest, ByVal AthHandle As String, ByVal AthIndex As String, Optional ByVal CreatedBy As String = "", Optional ByVal AthProcess As String = "") As List(Of SIS.EDI.ediAFile)
-      Dim mRet As New List(Of SIS.EDI.ediAFile)
+    Public Shared Function UploadFiles(ByVal oRequest As HttpRequest, ByVal AthHandle As String, ByVal AthIndex As String, Optional ByVal CreatedBy As String = "", Optional ByVal AthProcess As String = "") As List(Of EJI.ediAFile)
+      Dim mRet As New List(Of EJI.ediAFile)
       If oRequest.Files.Count > 0 Then
-        Dim LibFolder As String = "attachmentlibrary1"
-        Dim libPath As String = ""
-        Dim NeedsMapping As Boolean = False
-        Dim Mapped As Boolean = False
         Dim LibraryID As String = ""
-        Dim tmp As SIS.EDI.ediALib = SIS.EDI.ediALib.GetActiveLibrary
-        LibFolder = tmp.t_path
+        Dim LibPath As String = ""
+        Dim tmp As EJI.ediALib = EJI.ediALib.GetActiveLibrary
+        LibPath = tmp.LibraryPath
         LibraryID = tmp.t_lbcd
-        Dim UrlAuthority As String = HttpContext.Current.Request.Url.Authority
-        If UrlAuthority.ToLower <> "cloud.isgec.co.in" Then
-          UrlAuthority = "192.9.200.146"
-          NeedsMapping = True
-        End If
-        libPath = "D:\" & LibFolder
-        If NeedsMapping Then
-          libPath = "\\" & UrlAuthority & "\" & LibFolder
-          If ConnectToNetworkFunctions.connectToNetwork(libPath, "X:", "administrator", "Indian@12345") Then
-            Mapped = True
-          End If
+        If Not EJI.DBCommon.IsLocalISGECVault Then
+          EJI.ediALib.ConnectISGECVault(tmp)
         End If
         Dim tmpFilesToDelete As New ArrayList
 
@@ -562,14 +386,15 @@ Namespace SIS.EDI
           fu.SaveAs(tmpFile)
           tmpFilesToDelete.Add(tmpFile)
 
-          Dim tmpVault As SIS.EDI.ediAFile = New SIS.EDI.ediAFile
+          Dim tmpVault As EJI.ediAFile = New EJI.ediAFile
           Dim LibPDFFile As String = ""
           With tmpVault
-            LibPDFFile = SIS.EDI.ediASeries.GetNextFileName
+            LibPDFFile = EJI.ediASeries.GetNextFileID
+            .t_drid = EJI.ediASeries.GetNextRecordID
             .t_dcid = LibPDFFile
             .t_hndl = AthHandle
             .t_indx = AthIndex
-            .t_prcd = AthProcess
+            .t_prcd = "EJIMAIN"
             .t_fnam = IO.Path.GetFileName(fu.FileName)
             .t_lbcd = LibraryID
             .t_atby = IIf(CreatedBy = "", HttpContext.Current.Session("LoginID"), CreatedBy)
@@ -577,12 +402,12 @@ Namespace SIS.EDI
             .t_Refcntd = 0
             .t_Refcntu = 0
           End With
-          tmpVault = SIS.EDI.ediAFile.InsertData(tmpVault)
+          tmpVault = EJI.ediAFile.InsertData(tmpVault)
           Try
-            If IO.File.Exists(libPath & "\" & LibPDFFile) Then
-              IO.File.Delete(libPath & "\" & LibPDFFile)
+            If IO.File.Exists(LibPath & "\" & LibPDFFile) Then
+              IO.File.Delete(LibPath & "\" & LibPDFFile)
             End If
-            IO.File.Move(tmpFile, libPath & "\" & LibPDFFile)
+            IO.File.Move(tmpFile, LibPath & "\" & LibPDFFile)
           Catch ex As Exception
           End Try
           mRet.Add(tmpVault)
@@ -591,8 +416,8 @@ Namespace SIS.EDI
         'For Each str As String In tmpFilesToDelete
         '  IO.File.Delete(str)
         'Next
-        If Mapped Then
-          ConnectToNetworkFunctions.disconnectFromNetwork("X:")
+        If Not EJI.DBCommon.IsLocalISGECVault Then
+          EJI.ediALib.DisconnectISGECVault()
         End If
       End If
       Return mRet

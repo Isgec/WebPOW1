@@ -3,6 +3,7 @@ Imports System.Collections.Generic
 Imports System.Data
 Imports System.Data.SqlClient
 Imports System.ComponentModel
+Imports ejiVault
 Namespace SIS.POW
   Partial Public Class powOffers
     Public Property FromEMailID As String = ""
@@ -264,7 +265,7 @@ Namespace SIS.POW
       Dim tmpERPReceipt As SIS.PAK.pakERPRecH = Nothing
       Dim ERPReceiptToRevise As SIS.PAK.pakERPRecH = Nothing
       Dim OfferToRevise As SIS.POW.powOffers = Nothing
-      Dim tmpAtchs As New List(Of SIS.EDI.ediAFile)
+      Dim tmpAtchs As New List(Of EJI.ediAFile)
       Dim I As Integer = 1
       Dim ReceiptID As String = ""
       Dim ReceiptRevision As String = ""
@@ -335,13 +336,13 @@ Namespace SIS.POW
           tmpERPReceipt = SIS.POW.powOffers.GetERPRecH(tmpOffer)
           tmpERPReceipt = SIS.PAK.pakERPRecH.InsertData(tmpERPReceipt)
           '4. Create ERP Receipt Documents
-          tmpAtchs = SIS.EDI.ediAFile.ediAFileSelectList(0, 999, "", False, "", tmpOffer.AthHandle, tmpOffer.AthIndex)
+          tmpAtchs = EJI.ediAFile.GetFilesByHandleIndex(tmpOffer.AthHandle, tmpOffer.AthIndex)
           I = 1
-          For Each atch As SIS.EDI.ediAFile In tmpAtchs
+          For Each atch As EJI.ediAFile In tmpAtchs
             Dim ERPRecD As SIS.PAK.pakERPRecD = SIS.POW.powOffers.GetERPRecD(tmpOffer, atch, I)
             ERPRecD = SIS.PAK.pakERPRecD.InsertData(ERPRecD)
             Try
-              SIS.EDI.ediAFile.ediAFileCopy(tmpOffer.AthHandle, tmpOffer.AthIndex, ERPRecD.AthHandle, ERPRecD.AthIndex)
+              EJI.ediAFile.FileCopy(tmpOffer.AthHandle, tmpOffer.AthIndex, ERPRecD.AthHandle, ERPRecD.AthIndex, HttpContext.Current.Session("LoginID"))
             Catch ex As Exception
             End Try
             I += 1
@@ -359,13 +360,13 @@ Namespace SIS.POW
           tmpERPReceipt = SIS.POW.powOffers.GetERPRecH(tmpOffer)
           tmpERPReceipt = SIS.PAK.pakERPRecH.InsertData(tmpERPReceipt)
           '4. Create ERP Receipt Documents
-          tmpAtchs = SIS.EDI.ediAFile.ediAFileSelectList(0, 999, "", False, "", tmpOffer.AthHandle, tmpOffer.AthIndex)
+          tmpAtchs = EJI.ediAFile.GetFilesByHandleIndex(tmpOffer.AthHandle, tmpOffer.AthIndex)
           I = 1
-          For Each atch As SIS.EDI.ediAFile In tmpAtchs
+          For Each atch As EJI.ediAFile In tmpAtchs
             Dim ERPRecD As SIS.PAK.pakERPRecD = SIS.POW.powOffers.GetERPRecD(tmpOffer, atch, I)
             ERPRecD = SIS.PAK.pakERPRecD.InsertData(ERPRecD)
             Try
-              SIS.EDI.ediAFile.ediAFileCopy(tmpOffer.AthHandle, tmpOffer.AthIndex, ERPRecD.AthHandle, ERPRecD.AthIndex)
+              EJI.ediAFile.FileCopy(tmpOffer.AthHandle, tmpOffer.AthIndex, ERPRecD.AthHandle, ERPRecD.AthIndex, HttpContext.Current.Session("LoginID"))
             Catch ex As Exception
             End Try
             I += 1
@@ -438,13 +439,13 @@ Namespace SIS.POW
       '  SIS.PAK.pakERPRecD.pakERPRecDDelete(recD)
       '  SIS.EDI.ediAFile.DeleteByHandleIndex(recD.AthHandle, recD.AthIndex)
       'Next
-      Dim tmpAtchs As List(Of SIS.EDI.ediAFile) = SIS.EDI.ediAFile.ediAFileSelectList(0, 999, "", False, "", tmpOfr.AthHandle, tmpOfr.AthIndex)
+      Dim tmpAtchs As List(Of EJI.ediAFile) = EJI.ediAFile.GetFilesByHandleIndex(tmpOfr.AthHandle, tmpOfr.AthIndex)
       Dim I As Integer = 1
-      For Each td As SIS.EDI.ediAFile In tmpAtchs
+      For Each td As EJI.ediAFile In tmpAtchs
         Dim ERPRecD As SIS.PAK.pakERPRecD = SIS.POW.powOffers.GetERPRecD(tmpOfr, td, I)
         ERPRecD = SIS.PAK.pakERPRecD.InsertData(ERPRecD)
         Try
-          SIS.EDI.ediAFile.ediAFileCopy(tmpOfr.AthHandle, tmpOfr.AthIndex, ERPRecD.AthHandle, ERPRecD.AthIndex)
+          EJI.ediAFile.FileCopy(tmpOfr.AthHandle, tmpOfr.AthIndex, ERPRecD.AthHandle, ERPRecD.AthIndex, HttpContext.Current.Session("LoginID"))
         Catch ex As Exception
         End Try
         I += 1
@@ -521,7 +522,7 @@ Namespace SIS.POW
       oTW.WriteLine("</ERPFunctions>")
       oTW.Close()
     End Sub
-    Public Shared Function GetERPRecD(ByVal tmpOfr As SIS.POW.powOffers, ByVal STCPOLRD As SIS.EDI.ediAFile, ByVal NextNo As Integer) As SIS.PAK.pakERPRecD
+    Public Shared Function GetERPRecD(ByVal tmpOfr As SIS.POW.powOffers, ByVal STCPOLRD As EJI.ediAFile, ByVal NextNo As Integer) As SIS.PAK.pakERPRecD
       Dim tmp As New SIS.PAK.pakERPRecD
       With tmp
         .t_rcno = tmpOfr.ReceiptID

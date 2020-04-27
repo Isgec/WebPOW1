@@ -3,6 +3,7 @@ Imports System.Collections.Generic
 Imports System.Data
 Imports System.Data.SqlClient
 Imports System.ComponentModel
+Imports ejiVault
 Namespace SIS.POW
   Partial Public Class powEnquiries
     Public ReadOnly Property GetOffers As Integer
@@ -186,11 +187,11 @@ Namespace SIS.POW
       Return Results
     End Function
     Public Shared Sub CT_Update_140_OfferReceived(tmp As SIS.POW.powEnquiries, Comp As String)
-      Dim tmpDocs As List(Of SIS.EDI.ediAFile) = SIS.EDI.ediAFile.ediAFileGetAllByHandleIndex(tmp.AthHandle, tmp.AthIndex, Comp)
+      Dim tmpDocs As List(Of EJI.ediAFile) = EJI.ediAFile.GetFilesByHandleIndex(tmp.AthHandle, tmp.AthIndex)
       Dim Sql As String = ""
       Using Con As SqlConnection = New SqlConnection(SIS.SYS.SQLDatabase.DBCommon.GetBaaNConnectionString())
         Con.Open()
-        For Each fl As SIS.EDI.ediAFile In tmpDocs
+        For Each fl As EJI.ediAFile In tmpDocs
           Sql = ""
           Sql &= "   UPDATE [tdmisg140" & Comp & "] "
           Sql &= "   SET "
@@ -435,11 +436,11 @@ Namespace SIS.POW
       Return tmp
     End Function
     Public Shared Sub CT_Update_140_FirstEnquiryRaised(tmp As SIS.POW.powEnquiries, Comp As String)
-      Dim tmpDocs As List(Of SIS.EDI.ediAFile) = SIS.EDI.ediAFile.ediAFileGetAllByHandleIndex(tmp.AthHandle, tmp.AthIndex, Comp)
+      Dim tmpDocs As List(Of EJI.ediAFile) = EJI.ediAFile.GetFilesByHandleIndex(tmp.AthHandle, tmp.AthIndex)
       Dim Sql As String = ""
       Using Con As SqlConnection = New SqlConnection(SIS.SYS.SQLDatabase.DBCommon.GetBaaNConnectionString())
         Con.Open()
-        For Each fl As SIS.EDI.ediAFile In tmpDocs
+        For Each fl As EJI.ediAFile In tmpDocs
           Sql = ""
           Sql &= "   UPDATE [tdmisg140" & Comp & "] "
           Sql &= "   SET "
@@ -515,7 +516,7 @@ Namespace SIS.POW
     End Function
     Public Shared Function UZ_powEnquiriesInsert(ByVal Record As SIS.POW.powEnquiries) As SIS.POW.powEnquiries
       Record = powEnquiriesInsert(Record)
-      SIS.EDI.ediAFile.ediAFileCopy("J_PREORDER_TECHSPEC", Record.TSID, "J_PREORDER_ENQUIRY", Record.TSID & "_" & Record.EnquiryID)
+      ejiVault.EJI.ediAFile.FileCopy("J_PREORDER_TECHSPEC", Record.TSID, "J_PREORDER_ENQUIRY", Record.TSID & "_" & Record.EnquiryID, HttpContext.Current.Session("LoginID"))
       'Update E-mailID's in Supplier Master
       If Record.SupplierID <> "" Then
         Record.FK_POW_Enquiries_SupplierID.EMailID = Record.SupplierEMailID
@@ -592,7 +593,7 @@ Namespace SIS.POW
       End With
       Results = SIS.POW.powEnquiries.InsertData(Results)
       'Copy Attachments
-      SIS.EDI.ediAFile.ediAFileCopy(Record.AthHandle, Record.AthIndex, Results.AthHandle, Results.AthIndex)
+      ejiVault.EJI.ediAFile.FileCopy(Record.AthHandle, Record.AthIndex, Results.AthHandle, Results.AthIndex, Results.CreatedBy)
       Return Results
     End Function
 

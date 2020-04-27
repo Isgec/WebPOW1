@@ -3,6 +3,7 @@ Imports System.Collections.Generic
 Imports System.Data
 Imports System.Data.SqlClient
 Imports System.ComponentModel
+Imports ejiVault
 Namespace SIS.POW
   Partial Public Class powTechnicalSpecifications
     Private _Projects As String = ""
@@ -381,11 +382,11 @@ Namespace SIS.POW
       Return Results
     End Function
     Public Shared Sub CT_Update_140_CommercialFinalized(tmp As SIS.POW.powTechnicalSpecifications, Comp As String)
-      Dim tmpDocs As List(Of SIS.EDI.ediAFile) = SIS.EDI.ediAFile.ediAFileGetAllByHandleIndex(tmp.AthHandle, tmp.AthIndex, Comp)
+      Dim tmpDocs As List(Of EJI.ediAFile) = EJI.ediAFile.GetFilesByHandleIndex(tmp.AthHandle, tmp.AthIndex)
       Dim Sql As String = ""
       Using Con As SqlConnection = New SqlConnection(SIS.SYS.SQLDatabase.DBCommon.GetBaaNConnectionString())
         Con.Open()
-        For Each fl As SIS.EDI.ediAFile In tmpDocs
+        For Each fl As EJI.ediAFile In tmpDocs
           Sql = ""
           Sql &= "   UPDATE [tdmisg140" & Comp & "] "
           Sql &= "   SET "
@@ -629,7 +630,7 @@ Namespace SIS.POW
         '6. Create WF PMDL Docs
         For Each doc As SIS.TDISG.tdisg003 In tmpDocs
           Dim oTSIDoc As SIS.POW.powTSIndentDocuments = Nothing
-          Dim aFile As SIS.EDI.ediAFile = Nothing
+          Dim aFile As ejiVault.EJI.ediAFile = Nothing
           oTSIDoc = SIS.POW.powTSIndentDocuments.powTSIndentDocumentsGetByDocumentID(oTSI.TSID, oTSI.SerialNo, doc.t_docn)
           If oTSIDoc Is Nothing Then
             oTSIDoc = New SIS.POW.powTSIndentDocuments
@@ -642,12 +643,16 @@ Namespace SIS.POW
             End With
             oTSIDoc = SIS.POW.powTSIndentDocuments.InsertData(oTSIDoc)
             '7. Copy Handle To WFID
-            aFile = SIS.EDI.ediAFile.ediAFileGetByHandleIndex("DOCUMENTMASTERPDF_" & Comp, doc.t_docn & "_" & doc.t_revi)
+            aFile = ejiVault.EJI.ediAFile.GetFileByHandleIndex("DOCUMENTMASTERPDF_" & Comp, doc.t_docn & "_" & doc.t_revi)
             If aFile IsNot Nothing Then
               aFile.t_hndl = "J_PREORDER_TECHSPEC"
               aFile.t_indx = oTS.TSID
               If Convert.ToBoolean(ConfigurationManager.AppSettings("JoomlaLive")) Then
-                SIS.EDI.ediAFile.InsertData(aFile, Comp)
+                aFile.t_prcd = aFile.t_drid
+                aFile.t_atby = HttpContext.Current.Session("LoginID")
+                aFile.t_aton = Now
+                aFile.t_drid = ejiVault.EJI.ediASeries.GetNextRecordID
+                ejiVault.EJI.ediAFile.InsertData(aFile)
               End If
             End If
           End If
@@ -673,12 +678,16 @@ Namespace SIS.POW
                 End With
                 oTSIDoc = SIS.POW.powTSIndentDocuments.InsertData(oTSIDoc)
                 '9. Copy Handle To WFID
-                aFile = SIS.EDI.ediAFile.ediAFileGetByHandleIndex("DOCUMENTMASTERPDF_" & Comp, ref.t_drgn & "_" & ref.t_drev)
+                aFile = ejiVault.EJI.ediAFile.GetFileByHandleIndex("DOCUMENTMASTERPDF_" & Comp, ref.t_drgn & "_" & ref.t_drev)
                 If aFile IsNot Nothing Then
                   aFile.t_hndl = "J_PREORDER_TECHSPEC"
                   aFile.t_indx = oTS.TSID
                   If Convert.ToBoolean(ConfigurationManager.AppSettings("JoomlaLive")) Then
-                    SIS.EDI.ediAFile.InsertData(aFile, Comp)
+                    aFile.t_prcd = aFile.t_drid
+                    aFile.t_atby = HttpContext.Current.Session("LoginID")
+                    aFile.t_aton = Now
+                    aFile.t_drid = ejiVault.EJI.ediASeries.GetNextRecordID
+                    ejiVault.EJI.ediAFile.InsertData(aFile)
                   End If
                 End If
               End If
