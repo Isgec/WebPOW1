@@ -578,6 +578,8 @@ Namespace SIS.POW
             eunt = "EU220"
           Case "R501"
             eunt = "EU240"
+          Case "R250"
+            eunt = "EU250"
         End Select
         .t_eunt = eunt
         'Default Values

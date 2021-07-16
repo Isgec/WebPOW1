@@ -38,6 +38,16 @@ Namespace SIS.POW
     Private _FK_POW_Offers_StatusID As SIS.POW.powOfferStates = Nothing
     Private _FK_POW_Offers_RecordTypeID As SIS.POW.powRecordTypes = Nothing
     Private _FK_POW_Offers_TSID As SIS.POW.powTechnicalSpecifications = Nothing
+    Public Property ERPStatusID As String
+    Public ReadOnly Property ERPStatusNM As String
+      Get
+        If ERPStatusID <> "" Then
+          Return System.Enum.GetName(GetType(enumERPStates), Convert.ToInt32(ERPStatusID))
+        End If
+        Return ""
+      End Get
+    End Property
+
     Public Property ForSupplier() As Boolean
       Get
         Return _ForSupplier
@@ -558,6 +568,7 @@ Namespace SIS.POW
           SIS.SYS.SQLDatabase.DBCommon.AddDBParameter(Cmd, "@AcknowledgedOn",SqlDbType.DateTime,21, Iif(Record.AcknowledgedOn= "" ,Convert.DBNull, Record.AcknowledgedOn))
           SIS.SYS.SQLDatabase.DBCommon.AddDBParameter(Cmd, "@ForSupplier", SqlDbType.Bit, 3, Record.ForSupplier)
           SIS.SYS.SQLDatabase.DBCommon.AddDBParameter(Cmd, "@CreatedOn", SqlDbType.DateTime, 21, IIf(Record.CreatedOn = "", Convert.DBNull, Record.CreatedOn))
+          SIS.SYS.SQLDatabase.DBCommon.AddDBParameter(Cmd, "@ERPStatusID", SqlDbType.Int, 11, IIf(Record.ERPStatusID = "", Convert.DBNull, Record.ERPStatusID))
           Cmd.Parameters.Add("@Return_TSID", SqlDbType.Int, 11)
           Cmd.Parameters("@Return_TSID").Direction = ParameterDirection.Output
           Cmd.Parameters.Add("@Return_EnquiryID", SqlDbType.Int, 11)
@@ -613,6 +624,7 @@ Namespace SIS.POW
           SIS.SYS.SQLDatabase.DBCommon.AddDBParameter(Cmd, "@AcknowledgedOn",SqlDbType.DateTime,21, Iif(Record.AcknowledgedOn= "" ,Convert.DBNull, Record.AcknowledgedOn))
           SIS.SYS.SQLDatabase.DBCommon.AddDBParameter(Cmd, "@ForSupplier", SqlDbType.Bit, 3, Record.ForSupplier)
           SIS.SYS.SQLDatabase.DBCommon.AddDBParameter(Cmd, "@CreatedOn", SqlDbType.DateTime, 21, IIf(Record.CreatedOn = "", Convert.DBNull, Record.CreatedOn))
+          SIS.SYS.SQLDatabase.DBCommon.AddDBParameter(Cmd, "@ERPStatusID", SqlDbType.Int, 11, IIf(Record.ERPStatusID = "", Convert.DBNull, Record.ERPStatusID))
           Cmd.Parameters.Add("@RowCount", SqlDbType.Int)
           Cmd.Parameters("@RowCount").Direction = ParameterDirection.Output
           _RecordCount = -1

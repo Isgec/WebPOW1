@@ -444,6 +444,12 @@
                             </ItemTemplate>
                             <HeaderStyle Width="100px" />
                           </asp:TemplateField>
+                          <asp:TemplateField HeaderText="ERP Status">
+                            <ItemTemplate>
+                              <asp:Label ID="L_ERPStatusID" runat="server" ForeColor='<%# EVal("ForeColor") %>' Title='<%# EVal("ERPStatusID") %>' Text='<%# Eval("ERPStatusNM") %>'></asp:Label>
+                            </ItemTemplate>
+                            <HeaderStyle Width="100px" />
+                          </asp:TemplateField>
                           <asp:TemplateField HeaderText="DEL">
                             <ItemTemplate>
                               <asp:ImageButton ID="cmdDelete" ValidationGroup='<%# "Delete" & Container.DataItemIndex %>' CausesValidation="true" runat="server" Visible='<%# EVal("DeleteWFVisible") %>' Enabled='<%# EVal("DeleteWFEnable") %>' AlternateText='<%# EVal("PrimaryKey") %>' ToolTip="Delete" SkinID="Delete" OnClientClick='<%# "return Page_ClientValidate(""Delete" & Container.DataItemIndex & """) && confirm(""Delete record ?"");" %>' CommandName="DeleteWF" CommandArgument='<%# Container.DataItemIndex %>' />

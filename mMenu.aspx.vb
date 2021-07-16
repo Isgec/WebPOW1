@@ -46,7 +46,7 @@ Partial Class mLGMenu
         If tmpUrl.StartsWith("@NoLocalHost", StringComparison.OrdinalIgnoreCase) Then
           tmpUrl = tmpUrl.Replace("@NoLocalHost", "")
           If tmpAuthority.ToLower = "localhost" Then
-            tmpAuthority = "192.9.200.146"
+            tmpAuthority = "perk01"
           End If
         End If
         Dim FinalURL As String = Request.Url.Scheme & Uri.SchemeDelimiter & tmpAuthority

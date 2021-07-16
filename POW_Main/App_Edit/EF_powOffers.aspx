@@ -105,6 +105,26 @@
                       runat="Server" />
                   </div>
                 </div>
+                <div class="row">
+                  <div class="col-sm-4">
+                    <asp:Label ID="Label2" runat="server" Text="ERP Status :" />&nbsp;
+                  </div>
+                  <div class="col-sm-8">
+                    <asp:TextBox
+                      ID="F_ERPStatusID"
+                      Width="88px"
+                      Text='<%# Bind("ERPStatusID") %>'
+                      Enabled="False"
+                      ToolTip="Value of ERP Status."
+                      CssClass="dmyfktxt"
+                      runat="Server" />
+                    <asp:Label
+                      ID="Label3"
+                      Text='<%# Eval("ERPStatusNM") %>'
+                      CssClass="myLbl"
+                      runat="Server" />
+                  </div>
+                </div>
                 <div class="row" style="display: none;">
                   <div class="col-sm-4">
                     <asp:Label ID="L_RecordTypeID" runat="server" Text="Record Type :" /><span style="color: red">*</span>
